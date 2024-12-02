@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Example</title>
+    <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+</head>
+<body>
+<h1>Socket.IO Example</h1>
+<input id="message" type="text" placeholder="Type your message">
+<button id="send">Send</button>
+<p id="response"></p>
+
+<script>
+    //https://0b78-81-65-161-133.ngrok-free.app
+    const socket = io('http://localhost:8080/api/game', {
+        transports: ['websocket', 'polling'] // Pour garantir la compatibilité
+    });
+
+    document.getElementById('send').onclick = () => {
+        const message = document.getElementById('message').value;
+        socket.emit('message', message); // Send message to the server
+    };
+
+    socket.on('response', (data) => {
+        document.getElementById('response').textContent = data; // Display response
+    });
+</script>
+</body>
+</html>
