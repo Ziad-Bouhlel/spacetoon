@@ -31,6 +31,8 @@ def handle_client(client_socket, address):
             if '{"accelerometer":' in message:
                 # Transmettre les données à Unity
                 broadcast_to_unity(message)
+            elif '{"piece":' in message :
+                broadcast_to_unity(message)
 
         except Exception as e:
             print(f"Erreur avec le client {address} : {e}")
