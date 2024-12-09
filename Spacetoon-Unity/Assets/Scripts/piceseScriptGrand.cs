@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using System.Net.Sockets;
 using System.Text;
 
-public class piceseScript : MonoBehaviour
+public class piceseScriptGrand : MonoBehaviour
 {
     public Vector3 RightPosition;
     public Quaternion RightRotation;
@@ -20,7 +20,7 @@ public class piceseScript : MonoBehaviour
     void Start()
     {
         RightPosition = transform.position;
-        transform.position = new Vector3(Random.Range(0f, 7.5f), Random.Range(4f, -4));
+        transform.position = new Vector3(Random.Range(1050f, 1300f), Random.Range(350f, 720f));
         RightRotation = transform.rotation;
         // Établir une connexion avec le serveur
         try
@@ -36,7 +36,7 @@ public class piceseScript : MonoBehaviour
 
     void Update()
     {
-        if (Vector3.Distance(transform.position, RightPosition) < 0.5f && transform.rotation == RightRotation)
+        if (Vector3.Distance(transform.position, RightPosition) < 30f && transform.rotation == RightRotation)
         {
             if (!Selected)
             {
@@ -45,7 +45,7 @@ public class piceseScript : MonoBehaviour
                     transform.position = RightPosition;
                     InRightPosition = true;
                     GetComponent<SortingGroup>().sortingOrder = 0;
-                    Camera.main.GetComponent<DragAndDrop_>().PlacedPieces++;
+                    Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
 
                     // Envoyer un message au serveur
                     SendPlacementMessage();

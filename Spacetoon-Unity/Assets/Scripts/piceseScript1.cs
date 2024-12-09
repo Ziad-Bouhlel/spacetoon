@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using System.Net.Sockets;
 using System.Text;
 
-public class piceseScript : MonoBehaviour
+public class piceseScript_ : MonoBehaviour
 {
     public Vector3 RightPosition;
     public Quaternion RightRotation;
@@ -20,23 +20,15 @@ public class piceseScript : MonoBehaviour
     void Start()
     {
         RightPosition = transform.position;
-        transform.position = new Vector3(Random.Range(0f, 7.5f), Random.Range(4f, -4));
+        transform.position = new Vector3(Random.Range(0, 0), Random.Range(0, 0));
         RightRotation = transform.rotation;
         // Établir une connexion avec le serveur
-        try
-        {
-            client = new TcpClient(serverIP, serverPort);
-            Debug.Log("Connexion au serveur établie.");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Erreur de connexion au serveur : " + e.Message);
-        }
+       
     }
 
     void Update()
     {
-        if (Vector3.Distance(transform.position, RightPosition) < 0.5f && transform.rotation == RightRotation)
+        if (Vector3.Distance(transform.position, RightPosition) < 50f && transform.rotation == RightRotation)
         {
             if (!Selected)
             {

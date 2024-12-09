@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
 
-public class PlacePieces : MonoBehaviour
+public class PlacePiecesGrand : MonoBehaviour
 {
-    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
+    private string serverIP = "172.20.10.7"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
     private NetworkStream stream;
@@ -76,13 +76,16 @@ public class PlacePieces : MonoBehaviour
     {
         try
         {
+          
             var json = JsonUtility.FromJson<PieceMessage>(message);
+     
             GameObject piece = GameObject.Find(json.piece);
-
+      
             if (piece != null)
             {
-                piece.transform.position = piece.GetComponent<piceseScript>().RightPosition;
-                piece.GetComponent<piceseScript>().InRightPosition = true;
+            
+                piece.transform.position = piece.GetComponent<RandomDisplay>().RightPosition;
+                piece.GetComponent<RandomDisplay>().InRightPosition = true;
                 Debug.Log($"Pièce {json.piece} placée à sa position correcte.");
             }
             else
