@@ -20,7 +20,14 @@ public class piceseScriptGrand : MonoBehaviour
     void Start()
     {
         RightPosition = transform.position;
-        transform.position = new Vector3(Random.Range(1050f, 1300f), Random.Range(350f, 720f));
+        Vector3[] possiblePositions =
+        {
+            new Vector3(1013f, Random.Range(342f, 695f), transform.position.z),
+            new Vector3(Random.Range(657f, 1365f), 514f, transform.position.z)
+        };
+
+        transform.position = possiblePositions[Random.Range(0, possiblePositions.Length)];
+
         RightRotation = transform.rotation;
         // Établir une connexion avec le serveur
         try
@@ -46,7 +53,7 @@ public class piceseScriptGrand : MonoBehaviour
                     InRightPosition = true;
                     GetComponent<SortingGroup>().sortingOrder = 0;
                     Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
-
+                   
                     // Envoyer un message au serveur
                     SendPlacementMessage();
                 }
@@ -68,6 +75,8 @@ public class piceseScriptGrand : MonoBehaviour
                 NetworkStream stream = client.GetStream();
                 stream.Write(data, 0, data.Length);
                 Debug.Log("Message envoyé au serveur : " + message);
+                BoxCollider boxCollider = GetComponent<BoxCollider>();
+                boxCollider.enabled = false;
             }
             catch (System.Exception e)
             {

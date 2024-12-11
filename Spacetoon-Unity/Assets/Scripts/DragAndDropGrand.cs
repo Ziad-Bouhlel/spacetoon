@@ -33,10 +33,10 @@ public class DragAndDropGrand : MonoBehaviour
         HandleTouchInput();
         HandleMouseInput();
 
-   /*     if (PlacedPieces == 35)
+        if (PlacedPieces == 35)
         {
-            EndMenu.SetActive(true);
-        }*/
+           Debug.Log("Fin du jeu");
+        }
     }
 
     private void HandleMouseInput()
@@ -44,12 +44,12 @@ public class DragAndDropGrand : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.transform != null && hit.transform.CompareTag("Puzzle"))
+            if (hit.transform != null && hit.transform.CompareTag("Puzzle") )
             {
                 GameObject piece = hit.transform.gameObject;
-
+                Debug.Log(piece.name);
                 // Détection du double-clic
-                if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
+                if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
                 {
                     RotatePiece(piece);
                     lastClickedObject = null; 
@@ -104,7 +104,7 @@ public class DragAndDropGrand : MonoBehaviour
                         GameObject piece = hit.transform.gameObject;
 
                         // Détection du double-tap
-                        if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
+                        if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
                         {
                             RotatePiece(piece);
                             lastClickedObject = null; // Réinitialiser après le double-tap
