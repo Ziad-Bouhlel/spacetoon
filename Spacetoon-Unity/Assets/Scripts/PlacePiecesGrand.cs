@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 
 public class PlacePiecesGrand : MonoBehaviour
 {
-    private string serverIP = "192.168.1.51"; // Adresse IP du serveur
+    private string serverIP = "172.20.10.7"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
     private NetworkStream stream;
