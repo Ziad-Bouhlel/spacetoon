@@ -17,6 +17,9 @@ public class PlacePiecesGrand : MonoBehaviour
     private bool isRunning = false;
     [SerializeField] private Timer timer; // Référence au script Timer
     [SerializeField] TextMeshProUGUI endText;
+    [SerializeField] TextMeshProUGUI waitingText;
+    [SerializeField] GameObject fondWaiting;
+    [SerializeField] GameObject spacetoonWaiting;
 
     // File d'attente pour les messages à traiter sur le thread principal
     private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
@@ -69,6 +72,13 @@ public class PlacePiecesGrand : MonoBehaviour
         // Traiter les messages en file d'attente
         while (messageQueue.TryDequeue(out string message))
         {
+            if (message.Contains("{\"start\":\"puzzle\""))
+            {
+                waitingText.gameObject.SetActive(false);
+                fondWaiting.SetActive(false);
+                spacetoonWaiting.SetActive(false);
+                timer.StartTimer();
+            }
             if (message.Contains("{\"piece\":"))
             {
                 HandlePlacementMessage(message);

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ public class Timer : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI timerText;
     private float elapsedTime;
-    private bool isRunning = true;
+    private bool isRunning = false; // Initialement, le timer est arrêté
 
     void Update()
     {
@@ -19,16 +18,19 @@ public class Timer : MonoBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
+    public void StartTimer()
+    {
+        isRunning = true;
+    }
+
     public void StopTimer()
     {
         isRunning = false;
     }
 
-    public string GetElapsedTime()
+    public void ResetTimer()
     {
-        int minutes = Mathf.FloorToInt(elapsedTime / 60);
-        int seconds = Mathf.FloorToInt(elapsedTime % 60);
-        return string.Format("{0:00}:{1:00}", minutes, seconds);
+        elapsedTime = 0f;
+        timerText.text = "00:00";
     }
-
 }
