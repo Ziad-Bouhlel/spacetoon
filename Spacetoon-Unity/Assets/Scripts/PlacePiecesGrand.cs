@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
+using TMPro;
 
 public class PlacePiecesGrand : MonoBehaviour
 {
@@ -14,12 +15,18 @@ public class PlacePiecesGrand : MonoBehaviour
     private NetworkStream stream;
     private Thread receiveThread;
     private bool isRunning = false;
+    [SerializeField] private Timer timer; // Référence au script Timer
+    [SerializeField] TextMeshProUGUI endText;
+    [SerializeField] TextMeshProUGUI waitingText;
+    [SerializeField] GameObject fondWaiting;
+    [SerializeField] GameObject spacetoonWaiting;
 
     // File d'attente pour les messages à traiter sur le thread principal
     private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
 
     void Start()
     {
+        endText.gameObject.SetActive(false);
         try
         {
             client = new TcpClient(serverIP, serverPort);
@@ -65,9 +72,22 @@ public class PlacePiecesGrand : MonoBehaviour
         // Traiter les messages en file d'attente
         while (messageQueue.TryDequeue(out string message))
         {
+            if (message.Contains("{\"start\":\"puzzle\""))
+            {
+                waitingText.gameObject.SetActive(false);
+                fondWaiting.SetActive(false);
+                spacetoonWaiting.SetActive(false);
+                timer.StartTimer();
+            }
             if (message.Contains("{\"piece\":"))
             {
                 HandlePlacementMessage(message);
+            }
+            if (message.Contains("Fin du jeu"))
+            {
+                Debug.Log("Fin du jeu détectée !");
+                timer.StopTimer(); // Arrête le timer
+                ShowEndText(); // Affiche le texte de fin de jeu
             }
         }
     }
@@ -97,6 +117,14 @@ public class PlacePiecesGrand : MonoBehaviour
         {
             Debug.LogError("Erreur lors du traitement du message : " + e.Message);
         }
+    }
+
+    void ShowEndText()
+    {
+        // Met à jour le texte de fin de jeu
+        endText.text = $"Fin de la partie ! Vous avez fini le puzzle en";
+        // Affiche le texte
+        endText.gameObject.SetActive(true);
     }
 
     void OnDestroy()

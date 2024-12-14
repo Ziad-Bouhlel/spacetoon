@@ -121,6 +121,7 @@ public class ManageMenu : MonoBehaviour
         }
     }
 
+
     void SendStartMessage()
     {
         if (client != null && client.Connected)
@@ -156,4 +157,5 @@ public class ManageMenu : MonoBehaviour
             Debug.Log("Connexion au serveur fermée.");
         }
     }
+
 }
