@@ -5,21 +5,25 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
+using TMPro;
 
 public class PlacePiecesGrand : MonoBehaviour
 {
-    private string serverIP = "172.20.10.7"; // Adresse IP du serveur
+    private string serverIP = "192.168.49.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
     private NetworkStream stream;
     private Thread receiveThread;
     private bool isRunning = false;
+    [SerializeField] private Timer timer; // Référence au script Timer
+    [SerializeField] TextMeshProUGUI endText;
 
     // File d'attente pour les messages à traiter sur le thread principal
     private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
 
     void Start()
     {
+        endText.gameObject.SetActive(false);
         try
         {
             client = new TcpClient(serverIP, serverPort);
@@ -69,6 +73,12 @@ public class PlacePiecesGrand : MonoBehaviour
             {
                 HandlePlacementMessage(message);
             }
+            if (message.Contains("Fin du jeu"))
+            {
+                Debug.Log("Fin du jeu détectée !");
+                timer.StopTimer(); // Arrête le timer
+                ShowEndText(); // Affiche le texte de fin de jeu
+            }
         }
     }
 
@@ -97,6 +107,14 @@ public class PlacePiecesGrand : MonoBehaviour
         {
             Debug.LogError("Erreur lors du traitement du message : " + e.Message);
         }
+    }
+
+    void ShowEndText()
+    {
+        // Met à jour le texte de fin de jeu
+        endText.text = $"Fin de la partie ! Vous avez fini le puzzle en";
+        // Affiche le texte
+        endText.gameObject.SetActive(true);
     }
 
     void OnDestroy()
