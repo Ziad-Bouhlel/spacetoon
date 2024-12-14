@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
-
+using System.Net.Sockets;
+using System.Text;
 public class DragAndDropGrand : MonoBehaviour
 {
     public Sprite[] Levels;
@@ -19,12 +20,26 @@ public class DragAndDropGrand : MonoBehaviour
     private float doubleClickTime = 0.3f; // Temps maximum entre deux clics/taps
     private float lastClickTime = 0f; // Temps du dernier clic/tap
     private GameObject lastClickedObject = null; // Dernier objet cliqué/tapé
-
+   private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+    private int serverPort = 5000;        // Port du serveur
+    private TcpClient client;
+    private bool finPartie= false;
     void Start()
     {
         for (int i = 0; i < 35; i++)
         {
-            GameObject.Find("piece_" + i + "").transform.Find("Puzzle").GetComponent<SpriteRenderer>().sprite = Levels[PlayerPrefs.GetInt("Level")];
+         
+        //    GameObject.Find("piece_" + i + "").transform.Find("Puzzle").GetComponent<SpriteRenderer>().sprite = Levels[PlayerPrefs.GetInt("Level")];
+            
+        }
+          try
+        {
+            client = new TcpClient(serverIP, serverPort);
+            Debug.Log("Connexion au serveur établie.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
     }
 
@@ -32,13 +47,41 @@ public class DragAndDropGrand : MonoBehaviour
     {
         HandleTouchInput();
         HandleMouseInput();
-
-        if (PlacedPieces == 35)
+       
+        if (PlacedPieces == 35 && !finPartie)
         {
-           Debug.Log("Fin du jeu");
+           SendEndGame("Fin du jeu");
+           finPartie = true;
         }
     }
 
+private void SendEndGame(string text){
+    if (client != null && client.Connected)
+            {
+                try
+                {
+                    // Construire un message JSON
+                    string message = "{"+text+"}";
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+
+                    // Envoyer les données au serveur
+                    NetworkStream stream = client.GetStream();
+                    stream.Write(data, 0, data.Length);
+                    Debug.Log("Message envoyé au serveur : " + message);
+                    BoxCollider boxCollider = GetComponent<BoxCollider>();
+                    boxCollider.enabled = false;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+                }
+            }
+            else
+            {
+                Debug.LogError("Connexion au serveur perdue.");
+            }
+
+}
     private void HandleMouseInput()
     {
         if (Input.GetMouseButtonDown(0))
@@ -47,7 +90,7 @@ public class DragAndDropGrand : MonoBehaviour
             if (hit.transform != null && hit.transform.CompareTag("Puzzle") )
             {
                 GameObject piece = hit.transform.gameObject;
-                Debug.Log(piece.name);
+               
                 // Détection du double-clic
                 if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
                 {
