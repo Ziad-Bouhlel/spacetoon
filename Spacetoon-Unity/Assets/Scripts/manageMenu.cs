@@ -3,40 +3,57 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Net.Sockets;
+using System.Text;
 
 public class ManageMenu : MonoBehaviour
 {
-    public GameObject iconHockey; // Icône de hockey
-    public GameObject iconPuzzle; // Icône de puzzle
+    public GameObject iconHockey; // IcÃ´ne de hockey
+    public GameObject iconPuzzle; // IcÃ´ne de puzzle
     public GameObject haloHockey; // Halo lumineux pour le hockey
     public GameObject haloPuzzle; // Halo lumineux pour le puzzle
     public Button playButton; // Bouton pour lancer le jeu
 
-    private GameObject selectedIcon = null; // L'icône actuellement sélectionnée
+    private GameObject selectedIcon = null; // L'icÃ´ne actuellement sÃ©lectionnÃ©e
 
     private bool puzzleSelected = false;
     private bool hockeySelected = false;
 
+    // ParamÃ¨tres pour la connexion rÃ©seau
+    private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+    private int serverPort = 5000;        // Port du serveur
+    private TcpClient client;
+
     void Start()
     {
-        // Initialisation : désactiver les halos et désactiver le bouton Play
+        // Initialisation : dÃ©sactiver les halos et dÃ©sactiver le bouton Play
         haloHockey.SetActive(false);
         haloPuzzle.SetActive(false);
         SetPlayButtonInteractable(false);
 
-        // Ajouter l'événement au bouton Play
+        // Ajouter l'Ã©vÃ©nement au bouton Play
         playButton.onClick.AddListener(StartGame);
+
+        // Ã‰tablir une connexion avec le serveur
+        try
+        {
+            client = new TcpClient(serverIP, serverPort);
+            Debug.Log("Connexion au serveur Ã©tablie.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Erreur de connexion au serveur : " + e.Message);
+        }
     }
 
-    // Méthode pour rendre le bouton Play interactable ou non
+    // MÃ©thode pour rendre le bouton Play interactable ou non
     void SetPlayButtonInteractable(bool interactable)
     {
-        playButton.interactable = interactable; // Active ou désactive les clics
-        Color buttonColor = playButton.image.color; // Récupère la couleur actuelle
-        buttonColor.a = interactable ? 1f : 0.5f; // Change l'opacité (1 = opaque, 0.5 = semi-transparent)
+        playButton.interactable = interactable; // Active ou dÃ©sactive les clics
+        Color buttonColor = playButton.image.color; // RÃ©cupÃ¨re la couleur actuelle
+        buttonColor.a = interactable ? 1f : 0.5f; // Change l'opacitÃ© (1 = opaque, 0.5 = semi-transparent)
         playButton.image.color = buttonColor; // Applique la nouvelle couleur
     }
-
 
     void Update()
     {
@@ -61,59 +78,84 @@ public class ManageMenu : MonoBehaviour
         }
     }
 
-
     void SelectGame(GameObject icon)
     {
-        // Réinitialiser l'état des icônes
+        // RÃ©initialiser l'Ã©tat des icÃ´nes
         if (icon == iconHockey && selectedIcon != iconHockey)
         {
             hockeySelected = true;
-            // Activer le halo pour Hockey et désactiver celui pour Puzzle
             haloHockey.SetActive(true);
             haloPuzzle.SetActive(false);
-
-            // Agrandir Hockey et ramener Puzzle à sa taille d'origine
-            iconHockey.transform.localScale *= 1.3f; // Augmenter l'échelle de 30%
+            iconHockey.transform.localScale *= 1.3f;
             if (puzzleSelected)
             {
-                iconPuzzle.transform.localScale = iconPuzzle.transform.localScale / 1.3f; // Rétablir Puzzle à sa taille normale
+                iconPuzzle.transform.localScale /= 1.3f;
             }
         }
         else if (icon == iconPuzzle && selectedIcon != iconPuzzle)
         {
             puzzleSelected = true;
-            // Activer le halo pour Puzzle et désactiver celui pour Hockey
             haloPuzzle.SetActive(true);
             haloHockey.SetActive(false);
-
-            // Agrandir Puzzle et ramener Hockey à sa taille d'origine
-            iconPuzzle.transform.localScale *= 1.3f; // Augmenter l'échelle de 30%
+            iconPuzzle.transform.localScale *= 1.3f;
             if (hockeySelected)
             {
-                iconHockey.transform.localScale = iconHockey.transform.localScale / 1.3f; // Rétablir Hockey à sa taille normale
+                iconHockey.transform.localScale /= 1.3f;
             }
         }
 
-        // Définir l'icône sélectionnée
         selectedIcon = icon;
-
-        // Rendre le bouton Play interactable
         SetPlayButtonInteractable(true);
     }
-
-
 
     void StartGame()
     {
         if (selectedIcon == iconHockey)
         {
-            // Charger la scène de hockey
-            SceneManager.LoadScene("HockeyScene"); // Remplacez par le nom exact de la scène
+            SceneManager.LoadScene("AirHockey");
         }
         else if (selectedIcon == iconPuzzle)
         {
-            // Charger la scène de puzzle
-            SceneManager.LoadScene("puzzleRomain"); // Remplacez par le nom exact de la scène
+            SendStartMessage(); // Envoi de la donnÃ©e au serveur
+            SceneManager.LoadScene("puzzleRomain");
         }
     }
+
+
+    void SendStartMessage()
+    {
+        if (client != null && client.Connected)
+        {
+            try
+            {
+                // Construire un message JSON
+                string message = "{\"start\":\"puzzle\"}";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+
+                // Envoyer les donnÃ©es au serveur
+                NetworkStream stream = client.GetStream();
+                stream.Write(data, 0, data.Length);
+                Debug.Log("Message envoyÃ© au serveur : " + message);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+            }
+        }
+        else
+        {
+            Debug.LogError("Connexion au serveur perdue.");
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Fermer la connexion au serveur lors de la destruction de l'objet
+        if (client != null)
+        {
+            client.Close();
+            Debug.Log("Connexion au serveur fermÃ©e.");
+        }
+    }
+
 }

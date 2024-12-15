@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
-
+using System.Net.Sockets;
+using System.Text;
+using UnityEngine.UI;
 public class DragAndDropGrand : MonoBehaviour
 {
     public Sprite[] Levels;
@@ -19,12 +21,38 @@ public class DragAndDropGrand : MonoBehaviour
     private float doubleClickTime = 0.3f; // Temps maximum entre deux clics/taps
     private float lastClickTime = 0f; // Temps du dernier clic/tap
     private GameObject lastClickedObject = null; // Dernier objet cliqué/tapé
+   private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+    private int serverPort = 5000;        // Port du serveur
+    private TcpClient client;
+    private bool finPartie= false;
 
+    public Button targetImage;
     void Start()
     {
+       
         for (int i = 0; i < 35; i++)
         {
-            GameObject.Find("piece_" + i + "").transform.Find("Puzzle").GetComponent<SpriteRenderer>().sprite = Levels[PlayerPrefs.GetInt("Level")];
+         
+        //    GameObject.Find("piece_" + i + "").transform.Find("Puzzle").GetComponent<SpriteRenderer>().sprite = Levels[PlayerPrefs.GetInt("Level")];
+            
+        }
+          try
+        {
+            client = new TcpClient(serverIP, serverPort);
+            Debug.Log("Connexion au serveur établie.");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Erreur de connexion au serveur : " + e.Message);
+        }
+        if (targetImage == null)
+        {
+            Debug.LogError("targetImage est null dans Start");
+        }
+        else
+        {
+            Debug.Log("targetImage est bien assigné dans Start");
+            targetImage.gameObject.SetActive(false);
         }
     }
 
@@ -32,27 +60,63 @@ public class DragAndDropGrand : MonoBehaviour
     {
         HandleTouchInput();
         HandleMouseInput();
-
-   /*     if (PlacedPieces == 35)
+       
+        if (PlacedPieces == 1 && !finPartie)
         {
-            EndMenu.SetActive(true);
-        }*/
+            ShowTargetImage();
+           SendEndGame("Fin du jeu");
+           finPartie = true;
+           
+        }
     }
 
+   public void ShowTargetImage()
+    {
+
+        
+            targetImage.gameObject.SetActive(true);
+        
+    }
+
+private void SendEndGame(string text){
+    if (client != null && client.Connected)
+            {
+                try
+                {
+                    // Construire un message JSON
+                    string message = "{"+text+"}";
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+
+                    // Envoyer les données au serveur
+                    NetworkStream stream = client.GetStream();
+                    stream.Write(data, 0, data.Length);
+                    Debug.Log("Message envoyé au serveur : " + message);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+                }
+            }
+            else
+            {
+                Debug.LogError("Connexion au serveur perdue.");
+            }
+
+}
     private void HandleMouseInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.transform != null && hit.transform.CompareTag("Puzzle"))
+            if (hit.transform != null && hit.transform.CompareTag("Puzzle") )
             {
                 GameObject piece = hit.transform.gameObject;
-
+               
                 // Détection du double-clic
-                if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
+                if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
                 {
-                    RotatePiece(piece);
-                    lastClickedObject = null; 
+                    //RotatePiece(piece);
+                    //lastClickedObject = null; 
                 }
                 else
                 {
@@ -104,10 +168,10 @@ public class DragAndDropGrand : MonoBehaviour
                         GameObject piece = hit.transform.gameObject;
 
                         // Détection du double-tap
-                        if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
+                        if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
                         {
-                            RotatePiece(piece);
-                            lastClickedObject = null; // Réinitialiser après le double-tap
+                            //RotatePiece(piece);
+                            //lastClickedObject = null; // Réinitialiser après le double-tap
                         }
                         else
                         {
@@ -153,14 +217,12 @@ public class DragAndDropGrand : MonoBehaviour
         piece.transform.Rotate(0, 0, 90);
     }
 
-    public void NextLevel()
-    {
-        PlayerPrefs.SetInt("Level", PlayerPrefs.GetInt("Level") + 1);
-        SceneManager.LoadScene("Game");
-    }
+
 
     public void BacktoMenu()
     {
-        SceneManager.LoadScene("Menu");
+        SceneManager.LoadScene("menuDuJeu");
     }
+
+ 
 }

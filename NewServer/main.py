@@ -26,13 +26,15 @@ def handle_client(client_socket, address):
             # Décoder les données reçues
             message = data.decode('utf-8')
             print(f"Données reçues de {address} : {message}")
-
+            broadcast_to_unity(message)
             # Si les données proviennent du téléphone
-            if '{"accelerometer":' in message:
+            #if '{"accelerometer":' in message:
                 # Transmettre les données à Unity
-                broadcast_to_unity(message)
-            elif '{"piece":' in message :
-                broadcast_to_unity(message)
+             #   broadcast_to_unity(message)
+            #elif '{"piece":' in message :
+             #   broadcast_to_unity(message)
+            #elif 'Fin du jeu' in message :
+             #   broadcast_to_unity(message)
 
         except Exception as e:
             print(f"Erreur avec le client {address} : {e}")

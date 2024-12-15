@@ -13,14 +13,21 @@ public class piceseScriptGrand : MonoBehaviour
     public bool Selected;
     
     // Paramètres pour la connexion réseau
-    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
+    private string serverIP = "192.168.49.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
 
     void Start()
     {
         RightPosition = transform.position;
-        transform.position = new Vector3(Random.Range(1050f, 1300f), Random.Range(350f, 720f));
+        Vector3[] possiblePositions =
+        {
+            new Vector3(1013f, Random.Range(342f, 695f), transform.position.z),
+            new Vector3(Random.Range(657f, 1365f), 514f, transform.position.z)
+        };
+
+        transform.position = possiblePositions[Random.Range(0, possiblePositions.Length)];
+
         RightRotation = transform.rotation;
         // Établir une connexion avec le serveur
         try
@@ -32,6 +39,7 @@ public class piceseScriptGrand : MonoBehaviour
         {
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
+        
     }
 
     void Update()
@@ -46,7 +54,7 @@ public class piceseScriptGrand : MonoBehaviour
                     InRightPosition = true;
                     GetComponent<SortingGroup>().sortingOrder = 0;
                     Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
-
+                   
                     // Envoyer un message au serveur
                     SendPlacementMessage();
                 }
@@ -68,6 +76,8 @@ public class piceseScriptGrand : MonoBehaviour
                 NetworkStream stream = client.GetStream();
                 stream.Write(data, 0, data.Length);
                 Debug.Log("Message envoyé au serveur : " + message);
+                BoxCollider boxCollider = GetComponent<BoxCollider>();
+                boxCollider.enabled = false;
             }
             catch (System.Exception e)
             {
