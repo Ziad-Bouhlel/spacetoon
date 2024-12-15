@@ -112,7 +112,7 @@ public class ManageMenu : MonoBehaviour
     {
         if (selectedIcon == iconHockey)
         {
-            SceneManager.LoadScene("HockeyScene");
+            SceneManager.LoadScene("AirHockey");
         }
         else if (selectedIcon == iconPuzzle)
         {

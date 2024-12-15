@@ -51,8 +51,8 @@ public class DragAndDrop_ : MonoBehaviour
                 // Détection du double-clic
                 if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
                 {
-                    RotatePiece(piece);
-                    lastClickedObject = null; // Réinitialiser après le double-clic
+                    //RotatePiece(piece);
+                    //lastClickedObject = null; // Réinitialiser après le double-clic
                 }
                 else
                 {
@@ -105,8 +105,8 @@ public class DragAndDrop_ : MonoBehaviour
                         // Détection du double-tap
                         if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
                         {
-                            RotatePiece(piece);
-                            lastClickedObject = null; // Réinitialiser après le double-tap
+                            //RotatePiece(piece);
+                            //lastClickedObject = null; // Réinitialiser après le double-tap
                         }
                         else
                         {
