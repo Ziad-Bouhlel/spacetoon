@@ -1,0 +1,61 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/background_color">
+
+    <!-- Bouton UP -->
+    <Button
+        android:id="@+id/buttonUp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_centerHorizontal="true"
+        android:backgroundTint="@color/accent_color"
+        android:text="UP"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:elevation="8dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Bouton DOWN -->
+    <Button
+        android:id="@+id/buttonDown"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_below="@+id/buttonUp"
+        android:layout_centerHorizontal="true"
+        android:backgroundTint="@color/accent_color"
+        android:text="DOWN"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:elevation="8dp"
+        android:layout_marginTop="500dp"/>
+
+    <!-- Bouton LEFT -->
+    <Button
+        android:id="@+id/buttonLeft"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_toLeftOf="@+id/buttonUp"
+        android:layout_centerVertical="true"
+        android:backgroundTint="@color/primary_color"
+        android:text="LEFT"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:elevation="8dp"
+        android:layout_marginRight="16dp"/>
+
+    <!-- Bouton RIGHT -->
+    <Button
+        android:id="@+id/buttonRight"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_toRightOf="@+id/buttonUp"
+        android:layout_centerVertical="true"
+        android:backgroundTint="@color/primary_color"
+        android:text="RIGHT"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:elevation="8dp"
+        android:layout_marginLeft="25dp"/>
+</RelativeLayout>
