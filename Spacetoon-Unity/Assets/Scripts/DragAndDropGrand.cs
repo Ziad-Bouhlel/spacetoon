@@ -61,7 +61,7 @@ public class DragAndDropGrand : MonoBehaviour
         HandleTouchInput();
         HandleMouseInput();
        
-        if (PlacedPieces == 1 && !finPartie)
+        if (PlacedPieces == 35 && !finPartie)
         {
             ShowTargetImage();
            SendEndGame("Fin du jeu");
@@ -222,6 +222,28 @@ private void SendEndGame(string text){
     public void BacktoMenu()
     {
         SceneManager.LoadScene("menuDuJeu");
+         if (client != null && client.Connected)
+            {
+                try
+                {
+                    // Construire un message JSON
+                    string message = "{Quitter}";
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+
+                    // Envoyer les données au serveur
+                    NetworkStream stream = client.GetStream();
+                    stream.Write(data, 0, data.Length);
+                    Debug.Log("Message envoyé au serveur : " + message);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+                }
+            }
+            else
+            {
+                Debug.LogError("Connexion au serveur perdue.");
+            }
     }
 
  

@@ -89,6 +89,14 @@ public class PlacePiecesGrand : MonoBehaviour
                 timer.StopTimer(); // Arrête le timer
                 ShowEndText(); // Affiche le texte de fin de jeu
             }
+            if(message.Contains("Quitter")){
+                waitingText.gameObject.SetActive(true);
+                fondWaiting.SetActive(true);
+                spacetoonWaiting.SetActive(true);
+                timer.ResetTimer();
+                endText.gameObject.SetActive(false);
+                
+            }
         }
     }
 
