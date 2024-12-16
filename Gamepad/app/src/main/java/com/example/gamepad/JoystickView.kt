@@ -1,5 +1,6 @@
 package com.example.gamepad
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -9,6 +10,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 
+@SuppressLint("ClickableViewAccessibility")
 class JoystickView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
     private var baseRadius = 150f

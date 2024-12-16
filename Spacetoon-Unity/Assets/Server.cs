@@ -22,27 +22,36 @@ public class TCPClient : MonoBehaviour
         public SensorReading linearAcceleration;
     }
 
+    [System.Serializable]
+    public class JsonDataJoystick
+    {
+        public long timestamp;
+        public int joueur;
+        public float x;
+        public float y;
+    }
+
     public TextMeshProUGUI jsonText;
-    public GameObject puck;
-    public float speedFactor = 20f; 
+    public GameObject puckJ1;
+    public GameObject puckJ2;
+    public float speedFactor = 20f;
 
     private TcpClient tcpClient;
     private NetworkStream stream;
-    public string serverIP = "172.20.10.5";
-    public int port = 5000;               
+    public string serverIP;
+    public int port = 5000;
     private Thread receiveThread;
 
     private Vector2 screenBounds;
 
     private float previousTime;
     private Vector2 velocity = Vector2.zero;
-    private Vector2 position;
-    private Vector2 StandartPos;
+    private Vector2 positionJ1, positionJ2;
+    private Vector2 StandartPosJ1, StandartPosJ2;
 
 
     public SpriteRenderer p;
     Vector2 playerSize;
-
 
     void Start()
     {
@@ -51,13 +60,18 @@ public class TCPClient : MonoBehaviour
             print("Veuillez assigner une référence TextMeshPro dans l'inspecteur !");
             return;
         }
-        
+
         ConnectToServer();
         previousTime = Time.time;
-        position = new Vector2(puck.transform.position.x, puck.transform.position.y);
-        StandartPos = position;
+
+        positionJ1 = new Vector2(puckJ1.transform.position.x, puckJ1.transform.position.y);
+        StandartPosJ1 = positionJ1;
+
+        positionJ2 = new Vector2(puckJ2.transform.position.x, puckJ2.transform.position.y);
+        StandartPosJ2 = positionJ2;
+
         playerSize = p.bounds.extents;
-        
+
     }
 
     private void Update()
@@ -74,11 +88,8 @@ public class TCPClient : MonoBehaviour
             stream = tcpClient.GetStream();
             print("Connecté au serveur TCP");
             UpdateUIText("Connexion");
-            UpdateUIText(screenBounds.x + "/" + screenBounds.y);
             UpdateUIText(Camera.main.orthographicSize.ToString());
 
-
-            SendMessage("Connecté depuis Unity");
 
             receiveThread = new Thread(ReceiveMessages);
             receiveThread.IsBackground = true;
@@ -87,7 +98,7 @@ public class TCPClient : MonoBehaviour
         catch (SocketException ex)
         {
             print($"Erreur de connexion TCP : {ex.Message}");
-            UpdateUIText($"Erreur de connexion TCP : {ex.Message}");
+            UpdateUIText($"Erreur de connexion TCP : {serverIP}");
 
         }
     }
@@ -124,35 +135,98 @@ public class TCPClient : MonoBehaviour
                 if (bytesRead > 0)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
-                    print($"Message reçu : {message}");
 
-                    ProcessSensorData(message);
-                    
+                    ProcessSensorDatav2(message);
+
                 }
             }
             catch (System.Exception ex)
             {
-                print($"Erreur lors de la réception des données : {ex.Message}");
+                UpdateUIText($"Erreur dans ReceiveMessages : {ex.Message}");
                 break;
             }
         }
     }
 
-    void ProcessSensorData(string jsonData)
+    private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp traité
+    void ProcessSensorDatav2(string jsonData)
+    {
+        UpdateUIText($"Receiving messages... ");
+        JsonDataJoystick sensorData = JsonUtility.FromJson<JsonDataJoystick>(jsonData);
+        UpdateUIText(
+            $"x : {sensorData.x}\n" +
+            $"y : {sensorData.y}\n" +
+            $"joueur : {sensorData.joueur}\n" +
+            $"timestamp : {sensorData.timestamp}\n"
+            );
+
+        long currentTimestamp = sensorData.timestamp;
+
+        if (currentTimestamp <= lastProcessedTimestamp)
+        {
+            UpdateUIText("Données reçues avec un timestamp invalide ou désynchronisé. Ignorées.");
+            return;
+        }
+        MovePuckV2(sensorData.joueur, new Vector2(sensorData.x, sensorData.y));
+        lastProcessedTimestamp = currentTimestamp; // Met à jour le dernier timestamp traité
+
+    }
+
+    void MovePuckV2(int joueur, Vector2 jsonData)
+    {
+        if (puckJ1 == null || puckJ2 == null) return;
+        if (joueur == 1)
+        {
+            puckJ1.transform.position += new Vector3(jsonData.x, -jsonData.y, 0);
+        }
+        else if (joueur == 2)
+        {
+            puckJ2.transform.position += new Vector3(jsonData.x, -jsonData.y, 0);
+        }
+    }
+    void ProcessSensorDatav1(string jsonData)
     {
         try
         {
             ComplexSensorData sensorData = JsonUtility.FromJson<ComplexSensorData>(jsonData);
 
-            string accelerometerMessage = 
-                $"Accélération Linéaire:\n" +
-                $"Timestamp: {sensorData.linearAcceleration.timestamp}\n" +
-                $"X: {sensorData.linearAcceleration.value[0]:F2}\n" +
-                $"Y: {sensorData.linearAcceleration.value[1]:F2}\n" +
-                $"Z: {sensorData.linearAcceleration.value[2]:F2}";
+            long currentTimestamp = sensorData.linearAcceleration.timestamp;
 
-            MovePuck(new Vector2(sensorData.linearAcceleration.value[0], sensorData.linearAcceleration.value[1]));
+            // Vérification du timestamp
+            if (currentTimestamp <= lastProcessedTimestamp)
+            {
+                UpdateUIText("Données reçues avec un timestamp invalide ou désynchronisé. Ignorées.");
+                return;
+            }
 
+            lastProcessedTimestamp = currentTimestamp; // Met à jour le dernier timestamp traité
+            float x = sensorData.linearAcceleration.value[0];
+            float y = sensorData.linearAcceleration.value[1];
+            float z = sensorData.linearAcceleration.value[2];
+
+            if (Mathf.Abs(x) < 1 || Mathf.Abs(z) < 1) return;
+
+            string accelerometerMessage = "";
+            if (x > y && x > z)
+            {
+                accelerometerMessage = $"X: {x:F2}";
+
+            }
+            else if (y > z && y > x)
+            {
+                accelerometerMessage = $"Y: {y:F2}";
+            }
+            else if (z > x && z > y)
+            {
+                accelerometerMessage = $"Z: {z:F2}";
+            }
+
+
+            // Optionnel : Afficher les données dans l'UI
+            UpdateUIText(accelerometerMessage);
+
+            // Déplacer le puck avec les nouvelles données
+            MovePuck(new Vector2(-sensorData.linearAcceleration.value[2], -sensorData.linearAcceleration.value[0]));
         }
         catch (System.Exception ex)
         {
@@ -160,9 +234,10 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-
+    float lastTime;
     void MovePuck(Vector2 linearAcceleration)
     {
+
 
         float screenWidthCm = 35.7f; // Largeur de l'écran en cm
         float screenHeightCm = 20.1f; // Hauteur de l'écran en cm
@@ -176,23 +251,22 @@ public class TCPClient : MonoBehaviour
         float pixelWidthCm = screenWidthCm / screenWidthPx; // Taille d'un pixel en largeur
         float pixelHeightCm = screenHeightCm / screenHeightPx; // Taille d'un pixel en hauteur
 
-        if (Mathf.Abs(linearAcceleration.x) < 0.1 || Mathf.Abs(linearAcceleration.y) < 0.1) return;
-            
 
-        if (puck != null)
+
+        if (puckJ1 != null)
         {
             float currenTime = Time.time;
+            float deltaTime = currenTime - lastTime;
+            Vector2 velocityInCmPerSecond = linearAcceleration * deltaTime * 100;
 
-            Vector2 velocityInCmPerSecond = linearAcceleration * 1000 *0.2f  ;
+            float velocityInPixelsPerSecondX = velocityInCmPerSecond.x * pixelWidthCm;
+            float velocityInPixelsPerSecondY = velocityInCmPerSecond.y * pixelHeightCm;
 
-            float velocityInPixelsPerSecondX = velocityInCmPerSecond.x / screenWidthPx;
-            float velocityInPixelsPerSecondY = velocityInCmPerSecond.y /screenHeightPx;
+            velocity = new Vector2(velocityInPixelsPerSecondX, velocityInPixelsPerSecondY);
 
-            velocity = new Vector2(velocityInPixelsPerSecondX, velocityInPixelsPerSecondY) * scale;
-
-            Vector2 potentielAdd = position * velocity ;
-            Vector2 newPos = position + potentielAdd;
-            UpdateUIText($"velo : {velocityInPixelsPerSecondX}/{velocityInPixelsPerSecondY}\n"+
+            Vector2 potentielAdd = positionJ1 * velocity * deltaTime;
+            Vector2 newPos = positionJ1 + potentielAdd;
+            UpdateUIText($"velo : {velocityInPixelsPerSecondX}/{velocityInPixelsPerSecondY}\n" +
                 $"potentielAdd : {potentielAdd.x}/{potentielAdd.y}\n" +
                 $"newPos : {newPos.x}/{newPos.y}");
 
@@ -204,12 +278,12 @@ public class TCPClient : MonoBehaviour
                 newPos.y < 18.04 &&
                 newPos.y > 13)
             {
-                position += potentielAdd;
+                positionJ1 += potentielAdd;
 
             }
             else
             {
-                position = StandartPos;
+                positionJ1 = StandartPosJ1;
             }
 
             // UpdateUIText($"pixel : {pixelHeightCm} / {pixelWidthCm}\n"+
@@ -217,8 +291,10 @@ public class TCPClient : MonoBehaviour
             // $"velocmparS : {velocityInCmPerSecond.x} / {velocityInMetersPerSecond.y}\n" +
             //$"velocx : {velocityInPixelsPerSecondX} / {velocityInPixelsPerSecondY}");
 
-           
-            puck.transform.position = new Vector3(position.x, position.y,puck.transform.position.z) ;
+
+            puckJ1.transform.position = new Vector3(positionJ1.x, positionJ1.y, puckJ1.transform.position.z);
+
+            lastTime = Time.time;
         }
     }
 

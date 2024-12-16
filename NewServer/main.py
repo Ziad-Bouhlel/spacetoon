@@ -14,28 +14,36 @@ def handle_client(client_socket, address):
     Gère les connexions clients (téléphone ou Unity).
     """
     print(f"Connexion établie avec : {address}")
+    buffer = ""
+
     while True:
         try:
             # Recevoir des données du client
-            data = client_socket.recv(1024)
+            data = client_socket.recv(1024).decode('utf-8')
             if not data:
                 print(f"Connexion terminée avec : {address}")
                 clients.remove(client_socket)
                 break
 
-            # Décoder les données reçues
-            message = data.decode('utf-8')
-            print(f"Données reçues de {address} : {message}")
-            broadcast_to_unity(message)
-            # Si les données proviennent du téléphone
-            #if '{"accelerometer":' in message:
-                # Transmettre les données à Unity
-             #   broadcast_to_unity(message)
-            #elif '{"piece":' in message :
-             #   broadcast_to_unity(message)
-            #elif 'Fin du jeu' in message :
-             #   broadcast_to_unity(message)
+            # Ajouter les données reçues au tampon
+            buffer += data
 
+            # Traiter les messages complets dans le tampon
+            while True:
+                # Chercher la fin du message (par exemple, un '\n' ou un caractère de fin)
+                message_end_index = buffer.find('}\n')  # Changez le délimiteur selon votre format
+                if message_end_index == -1:
+                    # Pas de message complet, sortir de la boucle
+                    break
+                
+                # Extraire le message complet et le traiter
+                message = buffer[:message_end_index + 2]  # Inclure '}\n'
+                buffer = buffer[message_end_index + 2:]  # Garder le reste dans le tampon
+                
+                # Diffuser le message complet
+                print(f"Données reçues de {address} : {message}")
+                broadcast_to_unity(message)
+        
         except Exception as e:
             print(f"Erreur avec le client {address} : {e}")
             clients.remove(client_socket)
@@ -43,10 +51,12 @@ def handle_client(client_socket, address):
 
     client_socket.close()
 
+
 def broadcast_to_unity(data):
     """
     Envoie les données reçues du téléphone à Unity.
     """
+    print(f"Diffusion des données à Unity : {data}")  # Ajoutez ceci
     for client in clients:
         try:
             client.sendall(data.encode('utf-8'))

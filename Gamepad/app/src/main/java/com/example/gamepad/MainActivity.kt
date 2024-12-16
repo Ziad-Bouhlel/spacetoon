@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var coeffXInput: EditText
     private lateinit var coeffYInput: EditText
 
-    private val SERVER_IP = "172.26.96.1" // Remplace par l'adresse IP de ton serveur
+    private val SERVER_IP = "192.168.1.16" // Remplace par l'adresse IP de ton serveur
     private val SERVER_PORT = 5000 // Remplace par le port de ton serveur
     private var socket: Socket? = null
     private var writer: PrintWriter? = null
@@ -122,6 +122,8 @@ class MainActivity : AppCompatActivity() {
                 if (writer != null) {
                     // Création d'un objet JSON pour le vecteur
                     val json = JSONObject()
+
+                    json.put("timestamp",System.currentTimeMillis())
                     json.put("joueur", currentPlayer) // Ajoute le joueur sélectionné
                     json.put("x", x)
                     json.put("y", y)
