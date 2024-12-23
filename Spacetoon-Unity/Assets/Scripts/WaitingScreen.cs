@@ -5,9 +5,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
-
-public class PlacePieces : MonoBehaviour
+using UnityEngine.SceneManagement;
+public class WaitingScreen : MonoBehaviour
 {
+
     private string serverIP = "127.0.0.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
@@ -15,12 +16,11 @@ public class PlacePieces : MonoBehaviour
     private Thread receiveThread;
     private bool isRunning = false;
 
-    // File d'attente pour les messages à traiter sur le thread principal
-    private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
-
+   private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
+    // Start is called before the first frame update
     void Start()
     {
-        try
+          try
         {
             client = new TcpClient(serverIP, serverPort);
             stream = client.GetStream();
@@ -34,8 +34,7 @@ public class PlacePieces : MonoBehaviour
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
     }
-
-    void ReceiveMessages()
+  void ReceiveMessages()
     {
         try
         {
@@ -59,56 +58,18 @@ public class PlacePieces : MonoBehaviour
             isRunning = false;
         }
     }
-
     void Update()
     {
-        // Traiter les messages en file d'attente
         while (messageQueue.TryDequeue(out string message))
         {
-            if (message.Contains("{\"piece\":"))
+          if (message.Contains("{\"start\":\"puzzle\""))
             {
-                HandlePlacementMessage(message);
+             startVerticalScreen();
             }
         }
     }
 
-    void HandlePlacementMessage(string message)
-    {
-        try
-        {
-            var json = JsonUtility.FromJson<PieceMessage>(message);
-            GameObject piece = GameObject.Find(json.piece);
-
-            if (piece != null)
-            {
-                piece.transform.position = piece.GetComponent<piceseScript>().RightPosition;
-                piece.GetComponent<piceseScript>().InRightPosition = true;
-                Debug.Log($"Pièce {json.piece} placée à sa position correcte.");
-            }
-            else
-            {
-                Debug.LogWarning($"Pièce {json.piece} introuvable dans la scène.");
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Erreur lors du traitement du message : " + e.Message);
-        }
-    }
-
-    void OnDestroy()
-    {
-        isRunning = false;
-        if (receiveThread != null) receiveThread.Abort();
-        if (stream != null) stream.Close();
-        if (client != null) client.Close();
-        Debug.Log("Connexion au serveur fermée.");
-    }
-
-    [System.Serializable]
-    private class PieceMessage
-    {
-        public string piece;
-        public string status;
+    public void startVerticalScreen(){
+     SceneManager.LoadScene("puzzleVerticalScreenRomain");
     }
 }

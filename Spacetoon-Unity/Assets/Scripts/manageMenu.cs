@@ -20,9 +20,11 @@ public class ManageMenu : MonoBehaviour
     private bool hockeySelected = false;
 
     // Paramètres pour la connexion réseau
-    private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
+    
+    [SerializeField] private AudioSource placementAudioSource; 
 
     void Start()
     {
@@ -106,6 +108,15 @@ public class ManageMenu : MonoBehaviour
 
         selectedIcon = icon;
         SetPlayButtonInteractable(true);
+
+       if (placementAudioSource != null)
+            {
+                placementAudioSource.Play();
+            }
+            else
+            {
+                Debug.LogWarning("AudioSource non assignée pour le placement des pièces.");
+            }
     }
 
     void StartGame()
