@@ -1,21 +1,35 @@
-using System.Collections;
 using TMPro;
 using UnityEngine;
 
 public class Timer : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI timerText;
-    private float elapsedTime;
-    private bool isRunning = false; // Initialement, le timer est arr�t�
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private float startTimeInSeconds = 300f; // 5 minutes (300 secondes)
+    private float remainingTime;
+    private bool isRunning = false;
+
+    void Start()
+    {
+        ResetTimer(); // Initialise le timer à la durée définie
+    }
 
     void Update()
     {
         if (!isRunning) return;
 
-        elapsedTime += Time.deltaTime;
-        int minutes = Mathf.FloorToInt(elapsedTime / 60);
-        int seconds = Mathf.FloorToInt(elapsedTime % 60);
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        // Réduit le temps restant
+        remainingTime -= Time.deltaTime;
+
+        // Empêche le temps de descendre en dessous de 0
+        if (remainingTime <= 0)
+        {
+            remainingTime = 0;
+            StopTimer();
+            GameLost(); // Appelle la méthode lorsque le temps est écoulé
+        }
+
+        // Met à jour l'affichage
+        UpdateTimerText();
     }
 
     public void StartTimer()
@@ -30,7 +44,19 @@ public class Timer : MonoBehaviour
 
     public void ResetTimer()
     {
-        elapsedTime = 0f;
-        timerText.text = "00:00";
+        remainingTime = startTimeInSeconds;
+        UpdateTimerText();
+    }
+
+    private void UpdateTimerText()
+    {
+        int minutes = Mathf.FloorToInt(remainingTime / 60);
+        int seconds = Mathf.FloorToInt(remainingTime % 60);
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    private void GameLost()
+    {
+      GameObject.Find("Main Camera").GetComponent<PlacePiecesGrand>().SendLostGame();
     }
 }

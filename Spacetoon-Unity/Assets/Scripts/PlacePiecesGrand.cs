@@ -9,7 +9,7 @@ using TMPro;
 
 public class PlacePiecesGrand : MonoBehaviour
 {
-    private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
     private NetworkStream stream;
@@ -18,8 +18,11 @@ public class PlacePiecesGrand : MonoBehaviour
     [SerializeField] private Timer timer; // Référence au script Timer
     [SerializeField] TextMeshProUGUI endText;
     [SerializeField] TextMeshProUGUI waitingText;
+    [SerializeField] TextMeshProUGUI piecesRestantesText;
     [SerializeField] GameObject fondWaiting;
     [SerializeField] GameObject spacetoonWaiting;
+[SerializeField] private AudioSource placementAudioSource; // Référence à l'AudioSource
+    public Sprite newSprite;
 
     // File d'attente pour les messages à traiter sur le thread principal
     private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
@@ -40,6 +43,7 @@ public class PlacePiecesGrand : MonoBehaviour
         {
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
+        timer.StartTimer();
     }
 
     void ReceiveMessages()
@@ -108,13 +112,35 @@ public class PlacePiecesGrand : MonoBehaviour
             var json = JsonUtility.FromJson<PieceMessage>(message);
      
             GameObject piece = GameObject.Find(json.piece);
+            
       
             if (piece != null)
             {
-            
-                piece.transform.position = piece.GetComponent<RandomDisplay>().RightPosition;
-                piece.GetComponent<RandomDisplay>().InRightPosition = true;
+                piece.GetComponent<Solution>().setFound(true);
+                Transform firstChild = piece.transform.GetChild(0);
+                SpriteRenderer spriteRenderer = firstChild.GetComponent<SpriteRenderer>();
+                if (spriteRenderer != null)
+                {
+                spriteRenderer.sprite = newSprite;
+                spriteRenderer.color = new Color(1f, 1f, 1f, 1f); // Blanc opaque
+               /* Debug.Log(json.piece +"White");
+                GameObject pieceWhite = GameObject.Find(json.piece +"White");
+                pieceWhite.SetActive(true);*/
+
+                  if (placementAudioSource != null)
+                {
+                    placementAudioSource.Play();
+                }
+                else
+                {
+                    Debug.LogWarning("AudioSource non assignée pour le placement des pièces.");
+                }
+                }
+              //  piece.transform.position = piece.GetComponent<RandomDisplay>().RightPosition;
+               // piece.GetComponent<RandomDisplay>().InRightPosition = true;
                 Debug.Log($"Pièce {json.piece} placée à sa position correcte.");
+
+                updatePiecesRestantes();
             }
             else
             {
@@ -126,13 +152,85 @@ public class PlacePiecesGrand : MonoBehaviour
             Debug.LogError("Erreur lors du traitement du message : " + e.Message);
         }
     }
+    void updatePiecesRestantes(){
+        int nbPiece = 0;
+        GameObject tmpPiece ;
+        for (int i = 0; i < 35; i++)
+            {
+            
+                 tmpPiece =GameObject.Find("piece_" + i + "");
+                 if(tmpPiece.GetComponent<Solution>().isFound())
+                    nbPiece++;
+                
+            }
+        piecesRestantesText.text = "Nombre de pièces restantes : " + (35-nbPiece) + "";
+    }
+    public void changeSprite(){
+        StartCoroutine(ChangeSpriteTime());
+    }
+    private IEnumerator ChangeSpriteTime(){
+    Sprite oldSprite =   GameObject.Find("piece_1").transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+    GameObject tmpPiece ;
+            for (int i = 0; i < 35; i++)
+            {
+            
+                 tmpPiece =GameObject.Find("piece_" + i + "");
+                 if(!tmpPiece.GetComponent<Solution>().isFound())
+                    tmpPiece.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = newSprite ;
+                
+            }
+             yield return new WaitForSeconds(5f);
 
+                for (int i = 0; i < 35; i++)
+            {
+            
+               tmpPiece =GameObject.Find("piece_" + i + "");
+                 if(!tmpPiece.GetComponent<Solution>().isFound())
+                    tmpPiece.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = oldSprite ;  
+            }
+
+    }
     void ShowEndText()
     {
         // Met à jour le texte de fin de jeu
         endText.text = $"Fin de la partie ! Vous avez fini le puzzle en";
         // Affiche le texte
         endText.gameObject.SetActive(true);
+    }
+
+        void ShowLostText()
+    {
+        // Met à jour le texte de fin de jeu
+        endText.text = $"Fin de la partie ! Vous n'avez pas fini le puzzle";
+        // Affiche le texte
+        endText.gameObject.SetActive(true);
+    }
+
+      public void SendLostGame()
+    {
+        if (client != null && client.Connected)
+        {
+            try
+            {
+                // Construire un message JSON
+                string message = "Puzzle lost";
+                byte[] data = Encoding.UTF8.GetBytes(message);
+
+                // Envoyer les données au serveur
+                NetworkStream stream = client.GetStream();
+                stream.Write(data, 0, data.Length);
+                Debug.Log("Message envoyé au serveur : " + message);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+            }
+        }
+        else
+        {
+            Debug.LogError("Connexion au serveur perdue.");
+        }
+           ShowLostText();
     }
 
     void OnDestroy()
