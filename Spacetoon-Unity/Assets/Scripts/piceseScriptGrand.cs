@@ -11,9 +11,13 @@ public class piceseScriptGrand : MonoBehaviour
     public Quaternion RightRotation;
     public bool InRightPosition;
     public bool Selected;
-    
+
+    // Références pour l'animation du vaisseau
+    public GameObject spaceship; // Vaisseau à déplacer
+    private Animator spaceshipAnimator;
+
     // Paramètres pour la connexion réseau
-    private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
 
@@ -29,6 +33,7 @@ public class piceseScriptGrand : MonoBehaviour
         transform.position = possiblePositions[Random.Range(0, possiblePositions.Length)];
 
         RightRotation = transform.rotation;
+
         // Établir une connexion avec le serveur
         try
         {
@@ -39,7 +44,20 @@ public class piceseScriptGrand : MonoBehaviour
         {
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
-        
+
+        // Initialisation de l'Animator du vaisseau
+        if (spaceship != null)
+        {
+            spaceshipAnimator = spaceship.GetComponent<Animator>();
+            if (spaceshipAnimator == null)
+            {
+                Debug.LogError("Aucun Animator trouvé sur le vaisseau.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Le GameObject du vaisseau n'est pas assigné.");
+        }
     }
 
     void Update()
@@ -54,11 +72,27 @@ public class piceseScriptGrand : MonoBehaviour
                     InRightPosition = true;
                     GetComponent<SortingGroup>().sortingOrder = 0;
                     Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
-                   
+
+                    // Lancer l'animation du vaisseau
+                    StartSpaceshipAnimation();
+
                     // Envoyer un message au serveur
                     SendPlacementMessage();
                 }
             }
+        }
+    }
+
+    void StartSpaceshipAnimation()
+    {
+        if (spaceshipAnimator != null)
+        {
+            // Placer le vaisseau à la position de la pièce
+            spaceship.transform.position = transform.position;
+
+            // Déclencher l'animation
+            spaceshipAnimator.SetTrigger("Launch");
+            Debug.Log("Animation du vaisseau déclenchée depuis la position de la pièce.");
         }
     }
 

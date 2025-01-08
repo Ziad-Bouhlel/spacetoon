@@ -21,7 +21,7 @@ public class DragAndDropGrand : MonoBehaviour
     private float doubleClickTime = 0.3f; // Temps maximum entre deux clics/taps
     private float lastClickTime = 0f; // Temps du dernier clic/tap
     private GameObject lastClickedObject = null; // Dernier objet cliqué/tapé
-   private string serverIP = "192.168.49.1"; // Adresse IP du serveur
+   private string serverIP = "127.0.0.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
     private bool finPartie= false;
