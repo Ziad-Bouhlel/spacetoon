@@ -11,12 +11,15 @@ import java.io.PrintWriter
 import java.net.Socket
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var joystickView: JoystickView
+    //private lateinit var joystickView: JoystickView
+
     private lateinit var playerSwitch: Switch
     private lateinit var coeffXInput: EditText
     private lateinit var coeffYInput: EditText
 
-    private val SERVER_IP = "192.168.1.16" // Remplace par l'adresse IP de ton serveur
+    private lateinit var padView: PadView
+
+    private val SERVER_IP = "172.20.10.5" // Remplace par l'adresse IP de ton serveur
     private val SERVER_PORT = 5000 // Remplace par le port de ton serveur
     private var socket: Socket? = null
     private var writer: PrintWriter? = null
@@ -36,10 +39,11 @@ class MainActivity : AppCompatActivity() {
 //        val buttonRight: Button = findViewById(R.id.buttonRight)
 
         // Initialisation des vues
-        joystickView = findViewById(R.id.joystickView)
+        //joystickView = findViewById(R.id.joystickView)
         playerSwitch = findViewById(R.id.playerSwitch)
         coeffXInput = findViewById(R.id.coeffX)
         coeffYInput = findViewById(R.id.coeffY)
+        padView = findViewById(R.id.padView)
 
         connectToServer()
 
@@ -60,11 +64,18 @@ class MainActivity : AppCompatActivity() {
 
 
         // Gestion des mouvements du joystick
-        joystickView.setOnMoveListener { x, y ->
+        //joystickView.setOnMoveListener { x, y ->
+        //    val adjustedX = x * coeffX
+        //    val adjustedY = y * coeffY
+        //    sendVector(adjustedX, adjustedY)
+        //}
+
+        padView.setOnMoveListener { x, y ->
             val adjustedX = x * coeffX
             val adjustedY = y * coeffY
             sendVector(adjustedX, adjustedY)
         }
+
 
         // Gestion du Switch Joueur 1 ou Joueur 2
         playerSwitch.setOnCheckedChangeListener { _, isChecked ->
