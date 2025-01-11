@@ -81,6 +81,12 @@ class MainActivity : AppCompatActivity() {
         playerSwitch.setOnCheckedChangeListener { _, isChecked ->
             currentPlayer = if (isChecked) 1 else 2
             playerSwitch.text = if (isChecked) "Joueur 1" else "Joueur 2"
+
+            if (isChecked) {
+                sendMessageToServer("hockeyJoueur1")
+            } else {
+                sendMessageToServer("hockeyJoueur2")
+            }
         }
 
         // Gestion des coefficients X et Y
@@ -108,6 +114,9 @@ class MainActivity : AppCompatActivity() {
             try {
                 socket = Socket(SERVER_IP, SERVER_PORT)
                 writer = PrintWriter(socket!!.getOutputStream(), true)
+
+                sendMessageToServer("hockeyJoueur1")
+
                 runOnUiThread {
                     Toast.makeText(
                         this@MainActivity,
@@ -151,6 +160,23 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
     }
+
+    private fun sendMessageToServer(message: String) {
+        Thread {
+            try {
+                writer?.println(message)
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Failed to send message: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }.start()
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()
