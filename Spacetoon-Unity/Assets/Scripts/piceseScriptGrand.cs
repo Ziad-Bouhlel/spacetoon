@@ -12,14 +12,15 @@ public class piceseScriptGrand : MonoBehaviour
     public bool InRightPosition;
     public bool Selected;
 
-    // Références pour l'animation du vaisseau
-    public GameObject spaceship; // Vaisseau à déplacer
-    private Animator spaceshipAnimator;
+    public GameObject spaceship;
+    public Animator spaceshipAnimator;
 
-    // Paramètres pour la connexion réseau
-    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
-    private int serverPort = 5000;        // Port du serveur
+    private string serverIP = "127.0.0.1";
+    private int serverPort = 5000;
     private TcpClient client;
+
+    // Variable pour suivre l'état de l'animation
+    private bool isAnimating = false;
 
     void Start()
     {
@@ -31,10 +32,8 @@ public class piceseScriptGrand : MonoBehaviour
         };
 
         transform.position = possiblePositions[Random.Range(0, possiblePositions.Length)];
-
         RightRotation = transform.rotation;
 
-        // Établir une connexion avec le serveur
         try
         {
             client = new TcpClient(serverIP, serverPort);
@@ -45,13 +44,16 @@ public class piceseScriptGrand : MonoBehaviour
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
 
-        // Initialisation de l'Animator du vaisseau
         if (spaceship != null)
         {
-            spaceshipAnimator = spaceship.GetComponent<Animator>();
+            spaceship.SetActive(false); // Assurer que le vaisseau est invisible au départ
             if (spaceshipAnimator == null)
             {
-                Debug.LogError("Aucun Animator trouvé sur le vaisseau.");
+                spaceshipAnimator = spaceship.GetComponent<Animator>();
+                if (spaceshipAnimator == null)
+                {
+                    Debug.LogError("Aucun Animator trouvé sur le vaisseau.");
+                }
             }
         }
         else
@@ -64,36 +66,46 @@ public class piceseScriptGrand : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, RightPosition) < 30f && transform.rotation == RightRotation)
         {
-            if (!Selected)
+            if (!Selected && !InRightPosition)
             {
-                if (InRightPosition == false)
+                transform.position = RightPosition;
+                InRightPosition = true;
+                GetComponent<SortingGroup>().sortingOrder = 0;
+                Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
+
+                // Vérifier si une animation n'est pas déjà en cours
+                if (!isAnimating)
                 {
-                    transform.position = RightPosition;
-                    InRightPosition = true;
-                    GetComponent<SortingGroup>().sortingOrder = 0;
-                    Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
-
-                    // Lancer l'animation du vaisseau
-                    StartSpaceshipAnimation();
-
-                    // Envoyer un message au serveur
-                    SendPlacementMessage();
+                    StartCoroutine(HandleSpaceshipAnimation());
                 }
+
+                SendPlacementMessage();
             }
         }
     }
 
-    void StartSpaceshipAnimation()
+    IEnumerator HandleSpaceshipAnimation()
     {
         if (spaceshipAnimator != null)
         {
+            isAnimating = true;
+
+            spaceship.SetActive(true); // Rendre le vaisseau visible
+
             // Placer le vaisseau à la position de la pièce
             spaceship.transform.position = transform.position;
 
             // Déclencher l'animation
-            spaceshipAnimator.SetTrigger("Launch");
+            spaceshipAnimator.SetTrigger("StartAnimation");
             Debug.Log("Animation du vaisseau déclenchée depuis la position de la pièce.");
+
+            // attendre la fin de l'animation
+            yield return new WaitForSeconds(3f);
+            spaceshipAnimator.SetTrigger("StopAnim");
+            spaceship.SetActive(false); // Rendre le vaisseau invisible après l'animation
+            isAnimating = false;
         }
+
     }
 
     void SendPlacementMessage()
@@ -102,15 +114,13 @@ public class piceseScriptGrand : MonoBehaviour
         {
             try
             {
-                // Construire un message JSON
                 string message = "{\"piece\":\"" + gameObject.name + "\",\"status\":\"placed\"}";
                 byte[] data = Encoding.UTF8.GetBytes(message);
 
-                // Envoyer les données au serveur
                 NetworkStream stream = client.GetStream();
                 stream.Write(data, 0, data.Length);
                 Debug.Log("Message envoyé au serveur : " + message);
-                BoxCollider boxCollider = GetComponent<BoxCollider>();
+                BoxCollider2D boxCollider = GetComponent<BoxCollider2D>();
                 boxCollider.enabled = false;
             }
             catch (System.Exception e)
@@ -126,7 +136,6 @@ public class piceseScriptGrand : MonoBehaviour
 
     void OnDestroy()
     {
-        // Fermer la connexion au serveur lors de la destruction de l'objet
         if (client != null)
         {
             client.Close();
