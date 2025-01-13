@@ -38,6 +38,7 @@ public class PlacePiecesGrand : MonoBehaviour
             receiveThread = new Thread(ReceiveMessages);
             receiveThread.Start();
             Debug.Log("Connecté au serveur.");
+            SendMessageServer("puzzleEcran");
         }
         catch (System.Exception e)
         {
@@ -150,6 +151,31 @@ public class PlacePiecesGrand : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError("Erreur lors du traitement du message : " + e.Message);
+        }
+    }
+      void SendMessageServer(string message)
+    {
+        if (client != null && client.Connected)
+        {
+            try
+            {
+                // Construire un message JSON
+               
+                byte[] data = Encoding.UTF8.GetBytes(message);
+
+                // Envoyer les données au serveur
+                NetworkStream stream = client.GetStream();
+                stream.Write(data, 0, data.Length);
+                Debug.Log("Message envoyé au serveur : " + message);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+            }
+        }
+        else
+        {
+            Debug.LogError("Connexion au serveur perdue.");
         }
     }
     void updatePiecesRestantes(){

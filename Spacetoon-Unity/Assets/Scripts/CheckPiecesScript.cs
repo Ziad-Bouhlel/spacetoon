@@ -3,17 +3,16 @@ using UnityEngine;
 
 public class CheckPiecesScript : MonoBehaviour
 {
-    // Liste des objets ayant le script PiecesScriptGrand
+   
     public List<piceseScriptGrand> objectsToCheck;
-
-    // Carré à colorer en vert si tous les objets sont en bonne position
     public GameObject square;
 
-    // Couleur par défaut du carré (si besoin)
-    public Color defaultColor = Color.red;
+   
+    public Color defaultColor = Color.white;
 
-    // Couleur verte quand tous les objets sont en bonne position
     public Color successColor = Color.green;
+
+    public Color defeatColor = Color.red;
 
     private Renderer squareRenderer;
 
@@ -33,18 +32,14 @@ public class CheckPiecesScript : MonoBehaviour
 
     void Update()
     {
-        // Vérifie si tous les objets de la liste sont dans la bonne position
         if (AllObjectsInRightPosition())
         {
             SetSquareColor(successColor);
         }
-        else
-        {
-            SetSquareColor(defaultColor);
-        }
+
     }
 
-    private bool AllObjectsInRightPosition()
+    public bool AllObjectsInRightPosition()
     {
         foreach (var obj in objectsToCheck)
         {
@@ -62,6 +57,10 @@ public class CheckPiecesScript : MonoBehaviour
         {
             squareRenderer.material.color = color;
         }
+    }
+
+    public void Lost(){
+        SetSquareColor(defeatColor);
     }
 }
 

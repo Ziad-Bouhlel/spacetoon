@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using System.Net.Sockets;
-using System.Text;
 
 public class piceseScriptGrand : MonoBehaviour
 {
@@ -12,11 +10,8 @@ public class piceseScriptGrand : MonoBehaviour
     public bool InRightPosition;
     public bool Selected;
     
-    // Paramètres pour la connexion réseau
-    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
-    private int serverPort = 5000;        // Port du serveur
-    private TcpClient client;
 
+    public DragAndDropGrand connexionServer;
     void Start()
     {
         RightPosition = transform.position;
@@ -30,15 +25,6 @@ public class piceseScriptGrand : MonoBehaviour
 
         RightRotation = transform.rotation;
         // Établir une connexion avec le serveur
-        try
-        {
-            client = new TcpClient(serverIP, serverPort);
-            Debug.Log("Connexion au serveur établie.");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Erreur de connexion au serveur : " + e.Message);
-        }
         
     }
 
@@ -56,47 +42,21 @@ public class piceseScriptGrand : MonoBehaviour
                     Camera.main.GetComponent<DragAndDropGrand>().PlacedPieces++;
                    
                     // Envoyer un message au serveur
-                    SendPlacementMessage();
+                    connexionServer.SendPlacementMessage(gameObject.name);
+                    deleteCollider();
                 }
             }
         }
     }
 
-    void SendPlacementMessage()
+    public void deleteCollider()
     {
-        if (client != null && client.Connected)
-        {
-            try
-            {
-                // Construire un message JSON
-                string message = "{\"piece\":\"" + gameObject.name + "\",\"status\":\"placed\"}";
-                byte[] data = Encoding.UTF8.GetBytes(message);
-
-                // Envoyer les données au serveur
-                NetworkStream stream = client.GetStream();
-                stream.Write(data, 0, data.Length);
-                Debug.Log("Message envoyé au serveur : " + message);
-                BoxCollider boxCollider = GetComponent<BoxCollider>();
-                boxCollider.enabled = false;
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
-            }
-        }
-        else
-        {
-            Debug.LogError("Connexion au serveur perdue.");
-        }
+       BoxCollider2D boxCollider = GetComponent<BoxCollider2D>();
+       if (boxCollider != null){
+        boxCollider.enabled = false;
+       Debug.Log(gameObject.name + " collider delete");
+       }
     }
 
-    void OnDestroy()
-    {
-        // Fermer la connexion au serveur lors de la destruction de l'objet
-        if (client != null)
-        {
-            client.Close();
-            Debug.Log("Connexion au serveur fermée.");
-        }
-    }
+
 }

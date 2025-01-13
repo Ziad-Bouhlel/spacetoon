@@ -4,7 +4,10 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using System.Net.Sockets;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Collections.Concurrent;
 using UnityEngine.UI;
 public class DragAndDropGrand : MonoBehaviour
 {
@@ -24,22 +27,31 @@ public class DragAndDropGrand : MonoBehaviour
    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
+
+    private NetworkStream stream;
+    private Thread receiveThread;
+    private bool isRunning = false;
+    private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
     private bool finPartie= false;
 
     public Button targetImage;
+
+    public string identityName;
+
+    public List<CheckPiecesScript> squares;
     void Start()
     {
        
-        for (int i = 0; i < 35; i++)
-        {
-         
-        //    GameObject.Find("piece_" + i + "").transform.Find("Puzzle").GetComponent<SpriteRenderer>().sprite = Levels[PlayerPrefs.GetInt("Level")];
-            
-        }
+    
           try
         {
-            client = new TcpClient(serverIP, serverPort);
-            Debug.Log("Connexion au serveur établie.");
+        client = new TcpClient(serverIP, serverPort);
+            stream = client.GetStream();
+            isRunning = true;
+            receiveThread = new Thread(ReceiveMessages);
+            receiveThread.Start();
+            Debug.Log("Connecté au serveur.");
+            SendMessageServer(identityName);
         }
         catch (System.Exception e)
         {
@@ -51,7 +63,7 @@ public class DragAndDropGrand : MonoBehaviour
         }
         else
         {
-            Debug.Log("targetImage est bien assigné dans Start");
+           // Debug.Log("targetImage est bien assigné dans Start");
             targetImage.gameObject.SetActive(false);
         }
     }
@@ -61,48 +73,118 @@ public class DragAndDropGrand : MonoBehaviour
         HandleTouchInput();
         HandleMouseInput();
        
-        if (PlacedPieces == 35 && !finPartie)
+       
+        while (messageQueue.TryDequeue(out string message))
+        {
+            if (message.Contains("Puzzle lost"))
+            {
+               ShowTargetImage(); 
+                 for (int i = 0; i < 35; i++)
+                {
+                    Debug.Log(i);
+                    GameObject.Find("piece_" + i + "").GetComponent<piceseScriptGrand>().deleteCollider();
+            
+                }
+                foreach(CheckPiecesScript c in squares){
+                    Debug.Log("square");
+                    if(!c.AllObjectsInRightPosition()){
+                        c.Lost();
+                    }
+                }
+            }
+        
+        }
+
+         if (PlacedPieces == 35 && !finPartie)
         {
             ShowTargetImage();
-           SendEndGame("Fin du jeu");
+           SendMessageServer("Fin du jeu");
            finPartie = true;
            
         }
     }
 
-   public void ShowTargetImage()
+        void ReceiveMessages()
     {
+        try
+        {
+            byte[] buffer = new byte[1024];
+            while (isRunning)
+            {
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                if (bytesRead > 0)
+                {
+                    string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    Debug.Log("Message reçu du serveur : " + message);
 
-        
-            targetImage.gameObject.SetActive(true);
-        
+                    // Ajouter le message à la file d'attente
+                    messageQueue.Enqueue(message);
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Erreur lors de la réception des messages : " + e.Message);
+            isRunning = false;
+        }
     }
 
-private void SendEndGame(string text){
-    if (client != null && client.Connected)
-            {
-                try
-                {
-                    // Construire un message JSON
-                    string message = "{"+text+"}";
-                    byte[] data = Encoding.UTF8.GetBytes(message);
+   public void ShowTargetImage()
+    {
+            targetImage.gameObject.SetActive(true); 
+    }
 
-                    // Envoyer les données au serveur
-                    NetworkStream stream = client.GetStream();
-                    stream.Write(data, 0, data.Length);
-                    Debug.Log("Message envoyé au serveur : " + message);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
-                }
-            }
-            else
+  public void SendPlacementMessage(string name)
+    {
+        if (client != null && client.Connected)
+        {
+            try
             {
-                Debug.LogError("Connexion au serveur perdue.");
-            }
+                // Construire un message JSON
+                string message = "{\"piece\":\"" + name + "\",\"status\":\"placed\"}";
+                byte[] data = Encoding.UTF8.GetBytes(message);
 
-}
+                // Envoyer les données au serveur
+                NetworkStream stream = client.GetStream();
+                stream.Write(data, 0, data.Length);
+                Debug.Log("Message envoyé au serveur : " + message);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+            }
+        }
+        else
+        {
+            Debug.LogError("Connexion au serveur perdue.");
+        }
+    }
+
+      void SendMessageServer(string message)
+    {
+        if (client != null && client.Connected)
+        {
+            try
+            {
+                // Construire un message JSON
+               
+                byte[] data = Encoding.UTF8.GetBytes(message);
+
+                // Envoyer les données au serveur
+                NetworkStream stream = client.GetStream();
+                stream.Write(data, 0, data.Length);
+                Debug.Log("Message envoyé au serveur : " + message);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Erreur lors de l'envoi du message : " + e.Message);
+            }
+        }
+        else
+        {
+            Debug.LogError("Connexion au serveur perdue.");
+        }
+    }
     private void HandleMouseInput()
     {
         if (Input.GetMouseButtonDown(0))

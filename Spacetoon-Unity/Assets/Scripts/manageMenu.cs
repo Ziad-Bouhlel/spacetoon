@@ -41,6 +41,7 @@ public class ManageMenu : MonoBehaviour
         {
             client = new TcpClient(serverIP, serverPort);
             Debug.Log("Connexion au serveur établie.");
+            SendMessageServer("menuDuJeu");
         }
         catch (System.Exception e)
         {
@@ -127,20 +128,21 @@ public class ManageMenu : MonoBehaviour
         }
         else if (selectedIcon == iconPuzzle)
         {
-            SendStartMessage(); // Envoi de la donnée au serveur
+             string message = "{\"start\":\"puzzle\"}";
+            SendMessageServer(message); // Envoi de la donnée au serveur
             SceneManager.LoadScene("puzzleRomain");
         }
     }
 
 
-    void SendStartMessage()
+    void SendMessageServer(string message)
     {
         if (client != null && client.Connected)
         {
             try
             {
                 // Construire un message JSON
-                string message = "{\"start\":\"puzzle\"}";
+               
                 byte[] data = Encoding.UTF8.GetBytes(message);
 
                 // Envoyer les données au serveur
@@ -158,6 +160,7 @@ public class ManageMenu : MonoBehaviour
             Debug.LogError("Connexion au serveur perdue.");
         }
     }
+    
 
     void OnDestroy()
     {

@@ -4,7 +4,7 @@ using UnityEngine;
 public class Timer : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private float startTimeInSeconds = 300f; // 5 minutes (300 secondes)
+    [SerializeField] private float startTimeInSeconds = 30f; 
     private float remainingTime;
     private bool isRunning = false;
 
@@ -25,7 +25,7 @@ public class Timer : MonoBehaviour
         {
             remainingTime = 0;
             StopTimer();
-            GameLost(); // Appelle la méthode lorsque le temps est écoulé
+            GameLost();
         }
 
         // Met à jour l'affichage
