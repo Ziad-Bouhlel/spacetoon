@@ -57,7 +57,7 @@ public class TCPClient : MonoBehaviour
     {
         if (jsonText == null)
         {
-            print("Veuillez assigner une référence TextMeshPro dans l'inspecteur !");
+            print("Veuillez assigner une rï¿½fï¿½rence TextMeshPro dans l'inspecteur !");
             return;
         }
 
@@ -86,10 +86,23 @@ public class TCPClient : MonoBehaviour
         {
             tcpClient = new TcpClient(serverIP, port);
             stream = tcpClient.GetStream();
-            print("Connecté au serveur TCP");
+            print("Connectï¿½ au serveur TCP");
             UpdateUIText("Connexion");
             UpdateUIText(Camera.main.orthographicSize.ToString());
 
+
+            // Lecture de la demande d'identitÃ©
+            byte[] buffer = new byte[1024];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string serverMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
+            if (serverMessage == "IDENTIFY")
+            {
+                print($"Envoi de l'identitÃ© au serveur : hockeyJeu");
+                // Envoie l'identitÃ© au serveur
+                byte[] identityMessage = Encoding.UTF8.GetBytes("hockeyJeu");
+                stream.Write(identityMessage, 0, identityMessage.Length);
+                print("IdentitÃ© envoyÃ©e au serveur.");
+            }
 
             receiveThread = new Thread(ReceiveMessages);
             receiveThread.IsBackground = true;
@@ -97,9 +110,10 @@ public class TCPClient : MonoBehaviour
         }
         catch (SocketException ex)
         {
-            print($"Erreur de connexion TCP : {ex.Message}");
-            UpdateUIText($"Erreur de connexion TCP : {serverIP}");
-
+            UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
+            {
+                UpdateUIText($"Erreur de connexion TCP : {ex.Message}");
+            });
         }
     }
 
@@ -115,7 +129,7 @@ public class TCPClient : MonoBehaviour
         {
             byte[] data = Encoding.UTF8.GetBytes(message + "\n");
             stream.Write(data, 0, data.Length);
-            print($"Message envoyé : {message}");
+            print($"Message envoyï¿½ : {message}");
 
         }
         catch (System.Exception ex)
@@ -136,19 +150,24 @@ public class TCPClient : MonoBehaviour
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
 
-                    ProcessSensorDatav2(message);
-
+                    UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
+                    {
+                        ProcessSensorDatav2(message);
+                    });
                 }
             }
             catch (System.Exception ex)
             {
-                UpdateUIText($"Erreur dans ReceiveMessages : {ex.Message}");
+                UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
+                {
+                    UpdateUIText($"Erreur dans ReceiveMessages : {ex.Message}");
+                });
                 break;
             }
         }
     }
 
-    private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp traité
+    private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp traitï¿½
     void ProcessSensorDatav2(string jsonData)
     {
         UpdateUIText($"Receiving messages... ");
@@ -164,11 +183,11 @@ public class TCPClient : MonoBehaviour
 
         if (currentTimestamp <= lastProcessedTimestamp)
         {
-            UpdateUIText("Données reçues avec un timestamp invalide ou désynchronisé. Ignorées.");
+            UpdateUIText("Donnï¿½es reï¿½ues avec un timestamp invalide ou dï¿½synchronisï¿½. Ignorï¿½es.");
             return;
         }
         MovePuckV2(sensorData.joueur, new Vector2(sensorData.x, sensorData.y));
-        lastProcessedTimestamp = currentTimestamp; // Met à jour le dernier timestamp traité
+        lastProcessedTimestamp = currentTimestamp; // Met ï¿½ jour le dernier timestamp traitï¿½
 
     }
 
@@ -192,14 +211,14 @@ public class TCPClient : MonoBehaviour
 
             long currentTimestamp = sensorData.linearAcceleration.timestamp;
 
-            // Vérification du timestamp
+            // Vï¿½rification du timestamp
             if (currentTimestamp <= lastProcessedTimestamp)
             {
-                UpdateUIText("Données reçues avec un timestamp invalide ou désynchronisé. Ignorées.");
+                UpdateUIText("Donnï¿½es reï¿½ues avec un timestamp invalide ou dï¿½synchronisï¿½. Ignorï¿½es.");
                 return;
             }
 
-            lastProcessedTimestamp = currentTimestamp; // Met à jour le dernier timestamp traité
+            lastProcessedTimestamp = currentTimestamp; // Met ï¿½ jour le dernier timestamp traitï¿½
             float x = sensorData.linearAcceleration.value[0];
             float y = sensorData.linearAcceleration.value[1];
             float z = sensorData.linearAcceleration.value[2];
@@ -222,15 +241,15 @@ public class TCPClient : MonoBehaviour
             }
 
 
-            // Optionnel : Afficher les données dans l'UI
+            // Optionnel : Afficher les donnï¿½es dans l'UI
             UpdateUIText(accelerometerMessage);
 
-            // Déplacer le puck avec les nouvelles données
+            // Dï¿½placer le puck avec les nouvelles donnï¿½es
             MovePuck(new Vector2(-sensorData.linearAcceleration.value[2], -sensorData.linearAcceleration.value[0]));
         }
         catch (System.Exception ex)
         {
-            print($"Erreur lors du traitement des données JSON : {ex.Message}");
+            print($"Erreur lors du traitement des donnï¿½es JSON : {ex.Message}");
         }
     }
 
@@ -239,10 +258,10 @@ public class TCPClient : MonoBehaviour
     {
 
 
-        float screenWidthCm = 35.7f; // Largeur de l'écran en cm
-        float screenHeightCm = 20.1f; // Hauteur de l'écran en cm
-        int screenWidthPx = 1920;  // Largeur de l'écran en pixels
-        int screenHeightPx = 1080; // Hauteur de l'écran en pixels
+        float screenWidthCm = 35.7f; // Largeur de l'ï¿½cran en cm
+        float screenHeightCm = 20.1f; // Hauteur de l'ï¿½cran en cm
+        int screenWidthPx = 1920;  // Largeur de l'ï¿½cran en pixels
+        int screenHeightPx = 1080; // Hauteur de l'ï¿½cran en pixels
         float tableWidthCm = 143.0f;
         float tableHeightcm = 80.6f;
 
@@ -309,11 +328,17 @@ public class TCPClient : MonoBehaviour
 
     void UpdateUIText(string text)
     {
-        print(text);
-        if (jsonText != null)
+        UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
         {
-            jsonText.text = text;
-        }
+            print(text);
+            if (jsonText != null)
+            {
+                jsonText.text = text;
+            }
+            else {
+            Debug.LogWarning("TextMeshProUGUI non assignÃ© dans l'inspecteur.");
+            }
+        });
     }
 
     void OnApplicationQuit()
@@ -323,7 +348,12 @@ public class TCPClient : MonoBehaviour
 
     void OnDestroy()
     {
-        Cleanup();
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            receiveThread.Abort();
+        }
+        stream?.Close();
+        tcpClient?.Close();
     }
 
     void Cleanup()
@@ -334,6 +364,6 @@ public class TCPClient : MonoBehaviour
         }
         stream?.Close();
         tcpClient?.Close();
-        print("Connexion TCP fermée");
+        print("Connexion TCP fermï¿½e");
     }
 }

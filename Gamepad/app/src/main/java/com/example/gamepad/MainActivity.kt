@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private var coeffX = 1.0f
     private var coeffY = 1.0f
     private var currentPlayer = 1 // Par défaut Joueur 1
+    //private var isIdentityConfirmed = false
 
     @SuppressLint("ClickableViewAccessibility")
     protected override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,8 +97,9 @@ class MainActivity : AppCompatActivity() {
         coeffYInput.setOnFocusChangeListener { _, _ ->
             coeffY = coeffYInput.text.toString().toFloatOrNull() ?: 1.0f
         }
-
     }
+
+
 
 //    private fun handleButtonPress(event: MotionEvent, x: Int, y: Int): Boolean {
 //        if (event.action == MotionEvent.ACTION_DOWN) {
@@ -114,8 +116,23 @@ class MainActivity : AppCompatActivity() {
             try {
                 socket = Socket(SERVER_IP, SERVER_PORT)
                 writer = PrintWriter(socket!!.getOutputStream(), true)
+                println("Connecté au serveur : $SERVER_IP:$SERVER_PORT")
+                //sendMessageToServer("hockeyJoueur1")
 
+                val reader = socket!!.getInputStream().bufferedReader()
+                println("En attente de la demande d'identité du serveur...")
                 sendMessageToServer("hockeyJoueur1")
+
+                val identifyRequest = reader.readLine() // Lit "IDENTIFY"
+                println("Demande reçue du serveur : $identifyRequest")
+                if (identifyRequest == "IDENTIFY") {
+                    println("Envoi de l'identité 'hockeyJoueur1' au serveur...")
+                    writer!!.println("hockeyJoueur1") // Envoie l'identité au serveur
+                    //isIdentityConfirmed = true
+                    println("Identité envoyée et confirmée.")
+                } else {
+                    throw Exception("Aucune demande d'identité reçue du serveur.")
+                }
 
                 runOnUiThread {
                     Toast.makeText(
@@ -139,6 +156,11 @@ class MainActivity : AppCompatActivity() {
     private fun sendVector(x: Float, y: Float) {
         Thread {
             try {
+                //if (!isIdentityConfirmed) {
+                //    // Ne rien envoyer si l'identité n'est pas confirmée
+                //    return@Thread
+                //}
+
                 if (writer != null) {
                     // Création d'un objet JSON pour le vecteur
                     val json = JSONObject()
@@ -164,7 +186,13 @@ class MainActivity : AppCompatActivity() {
     private fun sendMessageToServer(message: String) {
         Thread {
             try {
-                writer?.println(message)
+                //writer?.print(message)
+                if (socket != null) {
+                    val outputStream = socket!!.getOutputStream()
+                    outputStream.write(message.toByteArray()) // Envoie le message brut sans saut de ligne
+                    outputStream.flush() // Force l'envoi immédiat
+                    println("Message envoyé : $message")
+                }
             } catch (e: Exception) {
                 runOnUiThread {
                     Toast.makeText(
