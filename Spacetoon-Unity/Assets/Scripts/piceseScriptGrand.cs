@@ -25,8 +25,8 @@ public class piceseScriptGrand : MonoBehaviour
         RightPosition = transform.position;
         Vector3[] possiblePositions =
         {
-            new Vector3(1013f, Random.Range(342f, 695f), transform.position.z),
-            new Vector3(Random.Range(657f, 1365f), 514f, transform.position.z)
+            new Vector3(980f, Random.Range(80f, 1000f), transform.position.z),
+            new Vector3(Random.Range(90, 1835f), 533f, transform.position.z)
         };
 
         transform.position = possiblePositions[Random.Range(0, possiblePositions.Length)];
@@ -68,8 +68,8 @@ public class piceseScriptGrand : MonoBehaviour
                     StartCoroutine(HandleSpaceshipAnimation());
                 }
 
-                 connexionServer.SendPlacementMessage(gameObject.name);
-                    deleteCollider();
+                connexionServer.SendPlacementMessage(gameObject.name);
+                deleteCollider();
             }
         }
     }

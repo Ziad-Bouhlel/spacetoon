@@ -9,7 +9,7 @@ using TMPro;
 
 public class PlacePiecesGrand : MonoBehaviour
 {
-    private string serverIP = "127.0.0.1"; // Adresse IP du serveur
+    public string serverIP = "192.168.49.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
     private TcpClient client;
     private NetworkStream stream;
