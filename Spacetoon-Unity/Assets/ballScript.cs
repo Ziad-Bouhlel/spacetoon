@@ -26,12 +26,10 @@ public class ballScript : MonoBehaviour
         if(other.tag == "red")
          {
             blueTxt.text = (++blueScore).ToString();
-            AudioManager.instance.PlayEffect(AudioManager.instance.goalSound); // Son de but
         }
         else if(other.tag == "blue")
          {
             redTxt.text = (++redScore).ToString();
-            AudioManager.instance.PlayEffect(AudioManager.instance.goalSound); // Son de but
         }
         control.respawnBall();
         red.respawn();
@@ -43,11 +41,9 @@ public class ballScript : MonoBehaviour
     {
     if (collision.collider.CompareTag("Player"))
     {
-        AudioManager.instance.PlayEffect(AudioManager.instance.blopSound); // Son de collision
     }
     else
     {
-        AudioManager.instance.PlayEffect(AudioManager.instance.respawnSound); // Son pour toucher le bord
     }
 }
    

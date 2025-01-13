@@ -149,10 +149,14 @@ public class TCPClient : MonoBehaviour
                 if (bytesRead > 0)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
-
                     UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
                     {
-                        ProcessSensorDatav2(message);
+                        string[] jsonObjects = message.Split(new[] { '}' }, System.StringSplitOptions.RemoveEmptyEntries);
+                        foreach (string jsonObject in jsonObjects)
+                        {
+                            string validJson = jsonObject + "}"; // Réajouter la parenthèse fermante
+                            ProcessSensorDatav2(validJson);
+                        }
                     });
                 }
             }
@@ -170,14 +174,10 @@ public class TCPClient : MonoBehaviour
     private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp trait�
     void ProcessSensorDatav2(string jsonData)
     {
+        print(jsonData);
         UpdateUIText($"Receiving messages... ");
         JsonDataJoystick sensorData = JsonUtility.FromJson<JsonDataJoystick>(jsonData);
-        UpdateUIText(
-            $"x : {sensorData.x}\n" +
-            $"y : {sensorData.y}\n" +
-            $"joueur : {sensorData.joueur}\n" +
-            $"timestamp : {sensorData.timestamp}\n"
-            );
+        print(sensorData);
 
         long currentTimestamp = sensorData.timestamp;
 
@@ -191,18 +191,29 @@ public class TCPClient : MonoBehaviour
 
     }
 
+    void checkPos(Vector2 newVector, double x1, double x2, GameObject puck)
+    {
+        Vector3 newPos = puck.transform.position+new Vector3(newVector.x, -newVector.y, 0);
+        print($"newVector = {newPos}");
+        if (newPos.y < 18.04 && newPos.y > 13.85 && newPos.x < x1 && newPos.x > x2)
+        {
+            puck.transform.position = newPos;
+        }
+    }
     void MovePuckV2(int joueur, Vector2 jsonData)
     {
         if (puckJ1 == null || puckJ2 == null) return;
         if (joueur == 1)
         {
-            puckJ1.transform.position += new Vector3(jsonData.x, -jsonData.y, 0);
+            checkPos(jsonData, -20.3, -24.5, puckJ1);
         }
         else if (joueur == 2)
         {
-            puckJ2.transform.position += new Vector3(jsonData.x, -jsonData.y, 0);
+            checkPos(jsonData, -15.5, -19.7, puckJ2);
         }
     }
+
+    /*
     void ProcessSensorDatav1(string jsonData)
     {
         try
@@ -316,6 +327,7 @@ public class TCPClient : MonoBehaviour
             lastTime = Time.time;
         }
     }
+    */
 
     void CalculateScreenBounds()
     {
