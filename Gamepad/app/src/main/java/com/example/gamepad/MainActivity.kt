@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var padView: PadView
 
-    private val SERVER_IP = "192.168.1.16" // Remplace par l'adresse IP de ton serveur
+    private val SERVER_IP = "172.20.10.3" // Remplace par l'adresse IP de ton serveur
     private val SERVER_PORT = 5000 // Remplace par le port de ton serveur
     private var socket: Socket? = null
     private var writer: PrintWriter? = null

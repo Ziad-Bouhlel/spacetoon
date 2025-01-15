@@ -174,10 +174,7 @@ public class TCPClient : MonoBehaviour
     private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp trait�
     void ProcessSensorDatav2(string jsonData)
     {
-        print(jsonData);
-        UpdateUIText($"Receiving messages... ");
         JsonDataJoystick sensorData = JsonUtility.FromJson<JsonDataJoystick>(jsonData);
-        print(sensorData);
 
         long currentTimestamp = sensorData.timestamp;
 
@@ -194,14 +191,15 @@ public class TCPClient : MonoBehaviour
     void checkPos(Vector2 newVector, double x1, double x2, GameObject puck)
     {
         Vector3 newPos = puck.transform.position+new Vector3(newVector.x, -newVector.y, 0);
-        print($"newVector = {newPos}");
         if (newPos.y < 18.04 && newPos.y > 13.85 && newPos.x < x1 && newPos.x > x2)
         {
+            print($"Vélocité : {puck.GetComponent<Rigidbody2D>().velocity}");
             puck.transform.position = newPos;
         }
     }
     void MovePuckV2(int joueur, Vector2 jsonData)
     {
+        
         if (puckJ1 == null || puckJ2 == null) return;
         if (joueur == 1)
         {
@@ -342,7 +340,6 @@ public class TCPClient : MonoBehaviour
     {
         UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
         {
-            print(text);
             if (jsonText != null)
             {
                 jsonText.text = text;
