@@ -3,7 +3,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using TMPro;
-
+using System.Collections.Generic;
+using System.Linq;
 
 
 public class TCPClient : MonoBehaviour
@@ -35,6 +36,19 @@ public class TCPClient : MonoBehaviour
     public GameObject puckJ1;
     public GameObject puckJ2;
     public float speedFactor = 20f;
+
+    public float velocityMultiplier = 0.5f;
+    public float bufferTimeWindow = 0.05f; // Fenêtre de temps pour accumuler les messages (en secondes)
+    private class BufferedMovement
+    {
+        public long timestamp;
+        public Vector2 position;
+    }
+    private List<BufferedMovement> bufferJ1 = new List<BufferedMovement>();
+    private List<BufferedMovement> bufferJ2 = new List<BufferedMovement>();
+    private float lastProcessTimeJ1;
+    private float lastProcessTimeJ2;
+
 
     private TcpClient tcpClient;
     private NetworkStream stream;
@@ -176,17 +190,84 @@ public class TCPClient : MonoBehaviour
     {
         JsonDataJoystick sensorData = JsonUtility.FromJson<JsonDataJoystick>(jsonData);
 
-        long currentTimestamp = sensorData.timestamp;
-
-        if (currentTimestamp <= lastProcessedTimestamp)
+        BufferedMovement movement = new BufferedMovement
         {
-            UpdateUIText("Donn�es re�ues avec un timestamp invalide ou d�synchronis�. Ignor�es.");
-            return;
+            timestamp = sensorData.timestamp,
+            position = new Vector2(sensorData.x, -sensorData.y)
+        };
+
+        if (sensorData.joueur == 1)
+        {
+            bufferJ1.Add(movement);
+            ProcessBufferIfReady(1);
         }
-        MovePuckV2(sensorData.joueur, new Vector2(sensorData.x, sensorData.y));
-        lastProcessedTimestamp = currentTimestamp; // Met � jour le dernier timestamp trait�
+        else if (sensorData.joueur == 2)
+        {
+            bufferJ2.Add(movement);
+            ProcessBufferIfReady(2);
+        }
 
     }
+    void ProcessBufferIfReady(int joueur)
+    {
+        float currentTime = Time.time;
+        List<BufferedMovement> buffer = (joueur == 1) ? bufferJ1 : bufferJ2;
+        float lastProcessTime = (joueur == 1) ? lastProcessTimeJ1 : lastProcessTimeJ2;
+        GameObject puck = (joueur == 1) ? puckJ1 : puckJ2;
+        double xMax = (joueur == 1) ? -20.3 : -15.5;
+        double xMin = (joueur == 1) ? -24.5 : -19.7;
+
+        // Vérifier si assez de temps s'est écoulé pour traiter le buffer
+        if (currentTime - lastProcessTime >= bufferTimeWindow && buffer.Count > 0)
+        {
+            // Calculer le mouvement total sur la période
+            Vector2 startPos = buffer.First().position;
+            Vector2 endPos = buffer.Last().position;
+            float deltaTime = (buffer.Last().timestamp - buffer.First().timestamp) / 1000f;
+
+            // Calculer la vélocité basée sur le mouvement total
+            if (deltaTime > 0)
+            {
+                Vector2 totalMovement = endPos - startPos;
+                Vector2 averageVelocity = (totalMovement / deltaTime) * velocityMultiplier;
+
+                // Appliquer le mouvement
+                UpdatePuckPhysics(puck, endPos, averageVelocity, xMax, xMin);
+
+                print($"Buffer size: {buffer.Count}\n" +
+                           $"Total movement: {totalMovement}\n" +
+                           $"Time window: {deltaTime:F3}s\n" +
+                           $"Velocity: {averageVelocity.magnitude:F2}");
+            }
+
+            // Vider le buffer
+            buffer.Clear();
+            if (joueur == 1)
+                lastProcessTimeJ1 = currentTime;
+            else
+                lastProcessTimeJ2 = currentTime;
+        }
+    }
+
+    void UpdatePuckPhysics(GameObject puck, Vector2 newPositionData, Vector2 velocity, double xMax, double xMin)
+    {
+        if (puck == null) return;
+
+        Vector3 newPos = puck.transform.position + new Vector3(newPositionData.x, newPositionData.y, 0);
+
+        if (newPos.y < 18.04 && newPos.y > 13.85 && newPos.x < xMax && newPos.x > xMin)
+        {
+            Rigidbody2D rb = puck.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                // Appliquer la vélocité calculée sur le mouvement groupé
+                rb.velocity = velocity;
+                rb.MovePosition(newPos);
+            }
+        }
+    }
+
+
 
     void checkPos(Vector2 newVector, double x1, double x2, GameObject puck)
     {
