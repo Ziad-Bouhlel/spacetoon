@@ -160,7 +160,7 @@ public class DragAndDropGrand : MonoBehaviour
         }
     }
 
-      void SendMessageServer(string message)
+      public void SendMessageServer(string message)
     {
         if (client != null && client.Connected)
         {

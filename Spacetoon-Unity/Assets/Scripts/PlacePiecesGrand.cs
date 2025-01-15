@@ -21,8 +21,11 @@ public class PlacePiecesGrand : MonoBehaviour
     [SerializeField] TextMeshProUGUI piecesRestantesText;
     [SerializeField] GameObject fondWaiting;
     [SerializeField] GameObject spacetoonWaiting;
-[SerializeField] private AudioSource placementAudioSource; // Référence à l'AudioSource
+    [SerializeField] private AudioSource placementAudioSource; // Référence à l'AudioSource
     public Sprite newSprite;
+    [SerializeField] private GameObject spaceship; // Référence au GameObject du vaisseau
+    //canva
+    [SerializeField] private GameObject Canva;
 
     // File d'attente pour les messages à traiter sur le thread principal
     private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
@@ -45,6 +48,7 @@ public class PlacePiecesGrand : MonoBehaviour
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
         timer.StartTimer();
+        spaceship.SetActive(false); // Assure que le vaisseau est invisible au départ
     }
 
     void ReceiveMessages()
@@ -86,7 +90,7 @@ public class PlacePiecesGrand : MonoBehaviour
             }
             if (message.Contains("{\"piece\":"))
             {
-                HandlePlacementMessage(message);
+                StartCoroutine(HandlePlacementMessage(message));
             }
             if (message.Contains("Fin du jeu"))
             {
@@ -102,11 +106,82 @@ public class PlacePiecesGrand : MonoBehaviour
                 endText.gameObject.SetActive(false);
                 
             }
+            if (message.Contains("piece posée"))
+            {
+               StartCoroutine(HandleSpaceshipAnimation(message));
+            }
         }
     }
 
-    void HandlePlacementMessage(string message)
+    IEnumerator HandleSpaceshipAnimation(string message)
     {
+        yield return new WaitForSeconds(3f);
+        string[] words = message.Split('_');
+        string pieceNumber = words[words.Length - 1];
+        Debug.Log(pieceNumber);
+
+        GameObject targetPiece = GameObject.Find("piece_" + pieceNumber);
+
+        if (targetPiece != null)
+        {
+            Vector3 targetPosition = targetPiece.transform.position;
+            Debug.Log(targetPosition);
+
+            GameObject newSpaceship = Instantiate(spaceship, transform.position, Quaternion.identity);
+            newSpaceship.transform.parent = Canva.transform;
+
+            Animator newAnimator = newSpaceship.GetComponent<Animator>();
+
+            if (newAnimator != null)
+            {
+                newSpaceship.SetActive(true);
+                float duration = 2f;
+                float elapsedTime = 0f;
+                Vector3 startPosition = new Vector3(targetPosition.x, -644, targetPosition.z);
+
+                float oscillationMagnitude = 5f;
+                float oscillationFrequency = 15f;
+                float rotationMagnitude = 13f;
+
+                while (elapsedTime < duration)
+                {
+                    elapsedTime += Time.deltaTime;
+                    float progress = elapsedTime / duration;
+
+                    Vector3 linearPosition = Vector3.Lerp(startPosition, targetPosition, progress);
+
+                    float oscillation = Mathf.Sin(elapsedTime * oscillationFrequency) * oscillationMagnitude;
+                    linearPosition.x += oscillation;
+
+                    newSpaceship.transform.position = linearPosition;
+
+                    float rotationOscillation = Mathf.Sin(elapsedTime * oscillationFrequency) * rotationMagnitude;
+                    newSpaceship.transform.rotation = Quaternion.Euler(0, 0, rotationOscillation);
+
+                    yield return null;
+                }
+
+                newSpaceship.transform.position = targetPosition;
+                newSpaceship.transform.rotation = Quaternion.identity;
+                yield return new WaitForSeconds(0.2f);
+                newSpaceship.SetActive(false);
+                Destroy(newSpaceship);
+            }
+            else
+            {
+                Debug.LogWarning("Animator non trouvé dans le vaisseau.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Could not find piece_{pieceNumber} in the scene");
+        }
+    }
+
+
+    IEnumerator HandlePlacementMessage(string message)
+    {
+        yield return new WaitForSeconds(5f);
         try
         {
           
@@ -219,7 +294,7 @@ public class PlacePiecesGrand : MonoBehaviour
     void ShowEndText()
     {
         // Met à jour le texte de fin de jeu
-        endText.text = $"Fin de la partie ! Vous avez fini le puzzle en";
+        endText.text = $"Fin de la partie ! Vous avez fini le puzzle, il vous restait";
         // Affiche le texte
         endText.gameObject.SetActive(true);
     }

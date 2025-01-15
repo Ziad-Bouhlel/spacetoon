@@ -16,6 +16,8 @@ public class piceseScriptGrand : MonoBehaviour
 
     public GameObject spaceship;
     public Animator spaceshipAnimator;
+    public GameObject spaceshipChild;
+    public GameObject Canva;
 
     // Variable pour suivre l'état de l'animation
     private bool isAnimating = false;
@@ -89,29 +91,45 @@ public class piceseScriptGrand : MonoBehaviour
 
     IEnumerator HandleSpaceshipAnimation()
     {
-        if (spaceshipAnimator != null)
+        if (spaceshipChild != null)
         {
-            isAnimating = true;
+            Debug.Log("Animation du vaisseau en cours...");
+            GameObject newSpaceship = Instantiate(spaceship, transform.position, Quaternion.identity);
+            Animator newAnimator = newSpaceship.transform.GetChild(0).GetComponent<Animator>();
+            newSpaceship.transform.parent = Canva.transform;
 
-            spaceship.SetActive(true); // Rendre le vaisseau visible
+            if (newAnimator != null)
+            {
+                newSpaceship.SetActive(true);
 
-            // Placer le vaisseau à la position de la pièce
-            spaceship.transform.position = transform.position;
+                SendAnimationStartMessage();
 
-            // Déclencher l'animation
-            spaceshipAnimator.SetTrigger("StartAnimation");
-            Debug.Log("Animation du vaisseau déclenchée depuis la position de la pièce.");
+                newAnimator.SetTrigger("StartAnimation");
+                Debug.Log("Animation du vaisseau déclenchée depuis la position de la pièce.");
 
-            // attendre la fin de l'animation
-            yield return new WaitForSeconds(3f);
-            spaceshipAnimator.SetTrigger("StopAnim");
-            spaceship.SetActive(false); // Rendre le vaisseau invisible après l'animation
-            isAnimating = false;
+                yield return new WaitForSeconds(3f);
+                newAnimator.SetTrigger("StopAnim");
+                newSpaceship.SetActive(false);
+
+                Destroy(newSpaceship);
+            }
         }
-
     }
 
-    
+    void SendAnimationStartMessage()
+    {
+        if (connexionServer != null)
+        {
+            connexionServer.SendMessageServer("piece posée " + gameObject.name);
+            Debug.Log("Message envoyé : animation démarrée pour " + gameObject.name);
+        }
+        else
+        {
+            Debug.LogError("Connexion au serveur non définie.");
+        }
+    }
+
+
 
 
 }
