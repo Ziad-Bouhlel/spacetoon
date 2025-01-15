@@ -24,7 +24,6 @@ public class PlacePiecesGrand : MonoBehaviour
     [SerializeField] private AudioSource placementAudioSource; // Référence à l'AudioSource
     public Sprite newSprite;
     [SerializeField] private GameObject spaceship; // Référence au GameObject du vaisseau
-    //canva
     [SerializeField] private GameObject Canva;
 
     // File d'attente pour les messages à traiter sur le thread principal
@@ -130,47 +129,38 @@ public class PlacePiecesGrand : MonoBehaviour
             GameObject newSpaceship = Instantiate(spaceship, transform.position, Quaternion.identity);
             newSpaceship.transform.parent = Canva.transform;
 
-            Animator newAnimator = newSpaceship.GetComponent<Animator>();
+            newSpaceship.SetActive(true);
+            float duration = 2f;
+            float elapsedTime = 0f;
+            Vector3 startPosition = new Vector3(targetPosition.x, -644, targetPosition.z);
 
-            if (newAnimator != null)
+            float oscillationMagnitude = 5f;
+            float oscillationFrequency = 15f;
+            float rotationMagnitude = 13f;
+
+            while (elapsedTime < duration)
             {
-                newSpaceship.SetActive(true);
-                float duration = 2f;
-                float elapsedTime = 0f;
-                Vector3 startPosition = new Vector3(targetPosition.x, -644, targetPosition.z);
+                elapsedTime += Time.deltaTime;
+                float progress = elapsedTime / duration;
 
-                float oscillationMagnitude = 5f;
-                float oscillationFrequency = 15f;
-                float rotationMagnitude = 13f;
+                Vector3 linearPosition = Vector3.Lerp(startPosition, targetPosition, progress);
 
-                while (elapsedTime < duration)
-                {
-                    elapsedTime += Time.deltaTime;
-                    float progress = elapsedTime / duration;
+                float oscillation = Mathf.Sin(elapsedTime * oscillationFrequency) * oscillationMagnitude;
+                linearPosition.x += oscillation;
 
-                    Vector3 linearPosition = Vector3.Lerp(startPosition, targetPosition, progress);
+                newSpaceship.transform.position = linearPosition;
 
-                    float oscillation = Mathf.Sin(elapsedTime * oscillationFrequency) * oscillationMagnitude;
-                    linearPosition.x += oscillation;
+                float rotationOscillation = Mathf.Sin(elapsedTime * oscillationFrequency) * rotationMagnitude;
+                newSpaceship.transform.rotation = Quaternion.Euler(0, 0, rotationOscillation);
 
-                    newSpaceship.transform.position = linearPosition;
-
-                    float rotationOscillation = Mathf.Sin(elapsedTime * oscillationFrequency) * rotationMagnitude;
-                    newSpaceship.transform.rotation = Quaternion.Euler(0, 0, rotationOscillation);
-
-                    yield return null;
-                }
-
-                newSpaceship.transform.position = targetPosition;
-                newSpaceship.transform.rotation = Quaternion.identity;
-                yield return new WaitForSeconds(0.2f);
-                newSpaceship.SetActive(false);
-                Destroy(newSpaceship);
+                yield return null;
             }
-            else
-            {
-                Debug.LogWarning("Animator non trouvé dans le vaisseau.");
-            }
+
+            newSpaceship.transform.position = targetPosition;
+            newSpaceship.transform.rotation = Quaternion.identity;
+            yield return new WaitForSeconds(0.2f);
+            newSpaceship.SetActive(false);
+            Destroy(newSpaceship);
         }
         else
         {
