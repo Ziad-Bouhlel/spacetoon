@@ -38,7 +38,7 @@ public class TCPClient : MonoBehaviour
     public float speedFactor = 20f;
 
     public float velocityMultiplier = 0.5f;
-    public float bufferTimeWindow = 0.05f; // Fenêtre de temps pour accumuler les messages (en secondes)
+    public float bufferTimeWindow = 0.000000005f; // Fenêtre de temps pour accumuler les messages (en secondes)
     private class BufferedMovement
     {
         public long timestamp;
