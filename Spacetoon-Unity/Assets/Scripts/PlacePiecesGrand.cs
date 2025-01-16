@@ -109,6 +109,9 @@ public class PlacePiecesGrand : MonoBehaviour
             {
                StartCoroutine(HandleSpaceshipAnimation(message));
             }
+            if (message.Contains("Light")){
+                changeSprite();
+            }
         }
     }
 

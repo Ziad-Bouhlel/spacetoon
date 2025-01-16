@@ -327,5 +327,9 @@ public class DragAndDropGrand : MonoBehaviour
             }
     }
 
+    public void ActiveColor(){
+        SendMessageServer("Light");
+    }
+
  
 }
