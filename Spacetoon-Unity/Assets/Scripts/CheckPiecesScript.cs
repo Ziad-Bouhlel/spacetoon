@@ -62,6 +62,34 @@ public class CheckPiecesScript : MonoBehaviour
     public void Lost(){
         SetSquareColor(defeatColor);
     }
+
+    public void UpdatePositionPieces(Vector2 deplacement){
+        foreach (var obj in objectsToCheck)
+        {
+            if (obj != null && obj.InRightPosition)
+            {
+                obj.transform.position += new Vector3(deplacement.x,deplacement.y,0); 
+            }
+              if (obj != null && !obj.InRightPosition)
+            {
+                obj.GetComponent<piceseScriptGrand>().RightPosition +=  new Vector3(deplacement.x,deplacement.y,0);
+            }
+        }
+    }
+
+    public void RandomPlacementHorizontal(int min,int max){
+         foreach (var obj in objectsToCheck)
+        {
+            if (obj != null && !obj.InRightPosition)
+            {
+                if( 900f<= obj.transform.position.x && obj.transform.position.x<= 1100f ){    
+                    if(obj.transform.position.y>min && obj.transform.position.y<max)
+                    obj.GetComponent<piceseScriptGrand>().RandomPlacementHorizontal();
+                }
+            }
+        }
+          
+    }
 }
 
 

@@ -128,7 +128,9 @@ public class piceseScriptGrand : MonoBehaviour
             Debug.LogError("Connexion au serveur non définie.");
         }
     }
-
+    public void RandomPlacementHorizontal(){
+       transform.position = new Vector3(Random.Range(90, 1835f), 533f, transform.position.z);
+    }
 
 
 
