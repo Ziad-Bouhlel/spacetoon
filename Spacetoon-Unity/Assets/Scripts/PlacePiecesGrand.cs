@@ -82,10 +82,12 @@ public class PlacePiecesGrand : MonoBehaviour
         {
             if (message.Contains("{\"start\":\"puzzle\""))
             {
+                restartGame();
                 waitingText.gameObject.SetActive(false);
                 fondWaiting.SetActive(false);
                 spacetoonWaiting.SetActive(false);
                 timer.StartTimer();
+                
             }
             if (message.Contains("{\"piece\":"))
             {
@@ -263,7 +265,7 @@ public class PlacePiecesGrand : MonoBehaviour
         StartCoroutine(ChangeSpriteTime());
     }
     private IEnumerator ChangeSpriteTime(){
-    Sprite oldSprite =   GameObject.Find("piece_1").transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+    Sprite oldSprite =   GameObject.Find("oldSprite").transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
     GameObject tmpPiece ;
             for (int i = 0; i < 35; i++)
             {
@@ -326,6 +328,20 @@ public class PlacePiecesGrand : MonoBehaviour
         }
            ShowLostText();
     }
+
+    private void restartGame(){
+  Sprite oldSprite =   GameObject.Find("oldSprite").transform.GetChild(0).GetComponent<SpriteRenderer>().sprite;
+      GameObject tmpPiece ;
+    for (int i = 0; i < 35; i++)
+                {  
+                tmpPiece =GameObject.Find("piece_" + i + "");
+                tmpPiece.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = oldSprite ;
+                tmpPiece.GetComponent<Solution>().setFound(false);  
+            
+    }
+    timer.ResetTimer();
+    updatePiecesRestantes();
+}
 
     void OnDestroy()
     {

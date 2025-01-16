@@ -85,7 +85,7 @@ public class DragAndDropGrand : MonoBehaviour
             
                 }
                 foreach(CheckPiecesScript c in squares){
-                    Debug.Log("square");
+                    
                     if(!c.AllObjectsInRightPosition()){
                         c.Lost();
                     }
