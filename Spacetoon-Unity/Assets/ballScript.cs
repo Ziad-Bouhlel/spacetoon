@@ -35,5 +35,16 @@ public class ballScript : MonoBehaviour
         red.respawn();
         blue.respawn();
     }
+
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+    if (collision.collider.CompareTag("Player"))
+    {
+    }
+    else
+    {
+    }
+}
    
 }

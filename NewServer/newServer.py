@@ -19,8 +19,11 @@ def handle_client(client_socket, address):
 
     try:
         # Recevoir la première donnée pour identifier le client
+        print("Envoi de la demande 'IDENTIFY' au client...")
         client_socket.sendall("IDENTIFY".encode('utf-8'))  # Demande d'identification
+        print("Envoi de la demande 'IDENTIFY' au client...")
         identity = client_socket.recv(1024).decode('utf-8')  # Réception de l'identité
+        print(f"Identité reçue : {identity}")
         if not identity:
             raise Exception("Aucune identité reçue.")
 

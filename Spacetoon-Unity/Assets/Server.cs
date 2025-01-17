@@ -3,7 +3,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using TMPro;
-
+using System.Collections.Generic;
+using System.Linq;
 
 
 public class TCPClient : MonoBehaviour
@@ -36,6 +37,19 @@ public class TCPClient : MonoBehaviour
     public GameObject puckJ2;
     public float speedFactor = 20f;
 
+    public float velocityMultiplier = 0.5f;
+    public float bufferTimeWindow = 0.000000005f; // FenÃªtre de temps pour accumuler les messages (en secondes)
+    private class BufferedMovement
+    {
+        public long timestamp;
+        public Vector2 position;
+    }
+    private List<BufferedMovement> bufferJ1 = new List<BufferedMovement>();
+    private List<BufferedMovement> bufferJ2 = new List<BufferedMovement>();
+    private float lastProcessTimeJ1;
+    private float lastProcessTimeJ2;
+
+
     private TcpClient tcpClient;
     private NetworkStream stream;
     public string serverIP;
@@ -57,7 +71,7 @@ public class TCPClient : MonoBehaviour
     {
         if (jsonText == null)
         {
-            print("Veuillez assigner une référence TextMeshPro dans l'inspecteur !");
+            print("Veuillez assigner une rï¿½fï¿½rence TextMeshPro dans l'inspecteur !");
             return;
         }
 
@@ -86,10 +100,23 @@ public class TCPClient : MonoBehaviour
         {
             tcpClient = new TcpClient(serverIP, port);
             stream = tcpClient.GetStream();
-            print("Connecté au serveur TCP");
+            print("Connectï¿½ au serveur TCP");
             UpdateUIText("Connexion");
             UpdateUIText(Camera.main.orthographicSize.ToString());
 
+
+            // Lecture de la demande d'identitÃ©
+            byte[] buffer = new byte[1024];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            string serverMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
+            if (serverMessage == "IDENTIFY")
+            {
+                print($"Envoi de l'identitÃ© au serveur : hockeyJeu");
+                // Envoie l'identitÃ© au serveur
+                byte[] identityMessage = Encoding.UTF8.GetBytes("hockeyJeu");
+                stream.Write(identityMessage, 0, identityMessage.Length);
+                print("IdentitÃ© envoyÃ©e au serveur.");
+            }
 
             receiveThread = new Thread(ReceiveMessages);
             receiveThread.IsBackground = true;
@@ -97,9 +124,10 @@ public class TCPClient : MonoBehaviour
         }
         catch (SocketException ex)
         {
-            print($"Erreur de connexion TCP : {ex.Message}");
-            UpdateUIText($"Erreur de connexion TCP : {serverIP}");
-
+            UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
+            {
+                UpdateUIText($"Erreur de connexion TCP : {ex.Message}");
+            });
         }
     }
 
@@ -115,7 +143,7 @@ public class TCPClient : MonoBehaviour
         {
             byte[] data = Encoding.UTF8.GetBytes(message + "\n");
             stream.Write(data, 0, data.Length);
-            print($"Message envoyé : {message}");
+            print($"Message envoyï¿½ : {message}");
 
         }
         catch (System.Exception ex)
@@ -135,55 +163,136 @@ public class TCPClient : MonoBehaviour
                 if (bytesRead > 0)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, bytesRead).Trim();
-
-                    ProcessSensorDatav2(message);
-
+                    UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
+                    {
+                        string[] jsonObjects = message.Split(new[] { '}' }, System.StringSplitOptions.RemoveEmptyEntries);
+                        foreach (string jsonObject in jsonObjects)
+                        {
+                            string validJson = jsonObject + "}"; // RÃ©ajouter la parenthÃ¨se fermante
+                            ProcessSensorDatav2(validJson);
+                        }
+                    });
                 }
             }
             catch (System.Exception ex)
             {
-                UpdateUIText($"Erreur dans ReceiveMessages : {ex.Message}");
+                UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
+                {
+                    UpdateUIText($"Erreur dans ReceiveMessages : {ex.Message}");
+                });
                 break;
             }
         }
     }
 
-    private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp traité
+    private long lastProcessedTimestamp = 0; // Stocke le dernier timestamp traitï¿½
     void ProcessSensorDatav2(string jsonData)
     {
-        UpdateUIText($"Receiving messages... ");
         JsonDataJoystick sensorData = JsonUtility.FromJson<JsonDataJoystick>(jsonData);
-        UpdateUIText(
-            $"x : {sensorData.x}\n" +
-            $"y : {sensorData.y}\n" +
-            $"joueur : {sensorData.joueur}\n" +
-            $"timestamp : {sensorData.timestamp}\n"
-            );
 
-        long currentTimestamp = sensorData.timestamp;
-
-        if (currentTimestamp <= lastProcessedTimestamp)
+        BufferedMovement movement = new BufferedMovement
         {
-            UpdateUIText("Données reçues avec un timestamp invalide ou désynchronisé. Ignorées.");
-            return;
+            timestamp = sensorData.timestamp,
+            position = new Vector2(sensorData.x, -sensorData.y)
+        };
+
+        if (sensorData.joueur == 1)
+        {
+            bufferJ1.Add(movement);
+            ProcessBufferIfReady(1);
         }
-        MovePuckV2(sensorData.joueur, new Vector2(sensorData.x, sensorData.y));
-        lastProcessedTimestamp = currentTimestamp; // Met à jour le dernier timestamp traité
+        else if (sensorData.joueur == 2)
+        {
+            bufferJ2.Add(movement);
+            ProcessBufferIfReady(2);
+        }
 
     }
+    void ProcessBufferIfReady(int joueur)
+    {
+        float currentTime = Time.time;
+        List<BufferedMovement> buffer = (joueur == 1) ? bufferJ1 : bufferJ2;
+        float lastProcessTime = (joueur == 1) ? lastProcessTimeJ1 : lastProcessTimeJ2;
+        GameObject puck = (joueur == 1) ? puckJ1 : puckJ2;
+        double xMax = (joueur == 1) ? -20.3 : -15.5;
+        double xMin = (joueur == 1) ? -24.5 : -19.7;
 
+        // VÃ©rifier si assez de temps s'est Ã©coulÃ© pour traiter le buffer
+        if (currentTime - lastProcessTime >= bufferTimeWindow && buffer.Count > 0)
+        {
+            // Calculer le mouvement total sur la pÃ©riode
+            Vector2 startPos = buffer.First().position;
+            Vector2 endPos = buffer.Last().position;
+            float deltaTime = (buffer.Last().timestamp - buffer.First().timestamp) / 1000f;
+
+            // Calculer la vÃ©locitÃ© basÃ©e sur le mouvement total
+            if (deltaTime > 0)
+            {
+                Vector2 totalMovement = endPos - startPos;
+                Vector2 averageVelocity = (totalMovement / deltaTime) * velocityMultiplier;
+
+                // Appliquer le mouvement
+                UpdatePuckPhysics(puck, endPos, averageVelocity, xMax, xMin);
+
+                print($"Buffer size: {buffer.Count}\n" +
+                           $"Total movement: {totalMovement}\n" +
+                           $"Time window: {deltaTime:F3}s\n" +
+                           $"Velocity: {averageVelocity.magnitude:F2}");
+            }
+
+            // Vider le buffer
+            buffer.Clear();
+            if (joueur == 1)
+                lastProcessTimeJ1 = currentTime;
+            else
+                lastProcessTimeJ2 = currentTime;
+        }
+    }
+
+    void UpdatePuckPhysics(GameObject puck, Vector2 newPositionData, Vector2 velocity, double xMax, double xMin)
+    {
+        if (puck == null) return;
+
+        Vector3 newPos = puck.transform.position + new Vector3(newPositionData.x, newPositionData.y, 0);
+
+        if (newPos.y < 18.04 && newPos.y > 13.85 && newPos.x < xMax && newPos.x > xMin)
+        {
+            Rigidbody2D rb = puck.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                // Appliquer la vÃ©locitÃ© calculÃ©e sur le mouvement groupÃ©
+                rb.velocity = velocity;
+                rb.MovePosition(newPos);
+            }
+        }
+    }
+
+
+
+    void checkPos(Vector2 newVector, double x1, double x2, GameObject puck)
+    {
+        Vector3 newPos = puck.transform.position+new Vector3(newVector.x, -newVector.y, 0);
+        if (newPos.y < 18.04 && newPos.y > 13.85 && newPos.x < x1 && newPos.x > x2)
+        {
+            print($"VÃ©locitÃ© : {puck.GetComponent<Rigidbody2D>().velocity}");
+            puck.transform.position = newPos;
+        }
+    }
     void MovePuckV2(int joueur, Vector2 jsonData)
     {
+        
         if (puckJ1 == null || puckJ2 == null) return;
         if (joueur == 1)
         {
-            puckJ1.transform.position += new Vector3(jsonData.x, -jsonData.y, 0);
+            checkPos(jsonData, -20.3, -24.5, puckJ1);
         }
         else if (joueur == 2)
         {
-            puckJ2.transform.position += new Vector3(jsonData.x, -jsonData.y, 0);
+            checkPos(jsonData, -15.5, -19.7, puckJ2);
         }
     }
+
+    /*
     void ProcessSensorDatav1(string jsonData)
     {
         try
@@ -192,14 +301,14 @@ public class TCPClient : MonoBehaviour
 
             long currentTimestamp = sensorData.linearAcceleration.timestamp;
 
-            // Vérification du timestamp
+            // Vï¿½rification du timestamp
             if (currentTimestamp <= lastProcessedTimestamp)
             {
-                UpdateUIText("Données reçues avec un timestamp invalide ou désynchronisé. Ignorées.");
+                UpdateUIText("Donnï¿½es reï¿½ues avec un timestamp invalide ou dï¿½synchronisï¿½. Ignorï¿½es.");
                 return;
             }
 
-            lastProcessedTimestamp = currentTimestamp; // Met à jour le dernier timestamp traité
+            lastProcessedTimestamp = currentTimestamp; // Met ï¿½ jour le dernier timestamp traitï¿½
             float x = sensorData.linearAcceleration.value[0];
             float y = sensorData.linearAcceleration.value[1];
             float z = sensorData.linearAcceleration.value[2];
@@ -222,15 +331,15 @@ public class TCPClient : MonoBehaviour
             }
 
 
-            // Optionnel : Afficher les données dans l'UI
+            // Optionnel : Afficher les donnï¿½es dans l'UI
             UpdateUIText(accelerometerMessage);
 
-            // Déplacer le puck avec les nouvelles données
+            // Dï¿½placer le puck avec les nouvelles donnï¿½es
             MovePuck(new Vector2(-sensorData.linearAcceleration.value[2], -sensorData.linearAcceleration.value[0]));
         }
         catch (System.Exception ex)
         {
-            print($"Erreur lors du traitement des données JSON : {ex.Message}");
+            print($"Erreur lors du traitement des donnï¿½es JSON : {ex.Message}");
         }
     }
 
@@ -239,10 +348,10 @@ public class TCPClient : MonoBehaviour
     {
 
 
-        float screenWidthCm = 35.7f; // Largeur de l'écran en cm
-        float screenHeightCm = 20.1f; // Hauteur de l'écran en cm
-        int screenWidthPx = 1920;  // Largeur de l'écran en pixels
-        int screenHeightPx = 1080; // Hauteur de l'écran en pixels
+        float screenWidthCm = 35.7f; // Largeur de l'ï¿½cran en cm
+        float screenHeightCm = 20.1f; // Hauteur de l'ï¿½cran en cm
+        int screenWidthPx = 1920;  // Largeur de l'ï¿½cran en pixels
+        int screenHeightPx = 1080; // Hauteur de l'ï¿½cran en pixels
         float tableWidthCm = 143.0f;
         float tableHeightcm = 80.6f;
 
@@ -297,6 +406,7 @@ public class TCPClient : MonoBehaviour
             lastTime = Time.time;
         }
     }
+    */
 
     void CalculateScreenBounds()
     {
@@ -309,11 +419,16 @@ public class TCPClient : MonoBehaviour
 
     void UpdateUIText(string text)
     {
-        print(text);
-        if (jsonText != null)
+        UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
         {
-            jsonText.text = text;
-        }
+            if (jsonText != null)
+            {
+                jsonText.text = text;
+            }
+            else {
+            Debug.LogWarning("TextMeshProUGUI non assignÃ© dans l'inspecteur.");
+            }
+        });
     }
 
     void OnApplicationQuit()
@@ -323,7 +438,12 @@ public class TCPClient : MonoBehaviour
 
     void OnDestroy()
     {
-        Cleanup();
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            receiveThread.Abort();
+        }
+        stream?.Close();
+        tcpClient?.Close();
     }
 
     void Cleanup()
@@ -334,6 +454,6 @@ public class TCPClient : MonoBehaviour
         }
         stream?.Close();
         tcpClient?.Close();
-        print("Connexion TCP fermée");
+        print("Connexion TCP fermï¿½e");
     }
 }
