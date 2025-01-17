@@ -17,17 +17,22 @@ public class PlacePiecesGrand : MonoBehaviour
     private bool isRunning = false;
     [SerializeField] private Timer timer; // Référence au script Timer
     [SerializeField] TextMeshProUGUI endText;
-    [SerializeField] TextMeshProUGUI waitingText;
     [SerializeField] TextMeshProUGUI piecesRestantesText;
-    [SerializeField] GameObject fondWaiting;
-    [SerializeField] GameObject spacetoonWaiting;
-    [SerializeField] private AudioSource placementAudioSource; // Référence à l'AudioSource
+    [SerializeField] GameObject waiting;
+    [SerializeField] private AudioSource placementAudioSource; 
+    [SerializeField] private AudioSource ambientSound; // Référence à l'AudioSource
+
     public Sprite newSprite;
     [SerializeField] private GameObject spaceship; // Référence au GameObject du vaisseau
     [SerializeField] private GameObject Canva;
 
     // File d'attente pour les messages à traiter sur le thread principal
     private ConcurrentQueue<string> messageQueue = new ConcurrentQueue<string>();
+
+    [SerializeField] private TextMeshProUGUI j1Text;
+    [SerializeField] private TextMeshProUGUI j2Text;
+    [SerializeField] private TextMeshProUGUI j3Text;
+    [SerializeField] private TextMeshProUGUI j4Text;
 
     void Start()
     {
@@ -83,9 +88,8 @@ public class PlacePiecesGrand : MonoBehaviour
             if (message.Contains("{\"start\":\"puzzle\""))
             {
                 restartGame();
-                waitingText.gameObject.SetActive(false);
-                fondWaiting.SetActive(false);
-                spacetoonWaiting.SetActive(false);
+                waiting.SetActive(false);
+                ambientSound.Play();
                 timer.StartTimer();
                 
             }
@@ -100,10 +104,8 @@ public class PlacePiecesGrand : MonoBehaviour
                 ShowEndText(); // Affiche le texte de fin de jeu
             }
             if(message.Contains("Quitter")){
-                waitingText.gameObject.SetActive(true);
-                fondWaiting.SetActive(true);
-                spacetoonWaiting.SetActive(true);
-                timer.ResetTimer();
+                waiting.SetActive(true);
+                ambientSound.Stop();
                 endText.gameObject.SetActive(false);
                 
             }
@@ -114,9 +116,23 @@ public class PlacePiecesGrand : MonoBehaviour
             if (message.Contains("Light")){
                 changeSprite();
             }
+            if(message.Contains("Joueur")){
+                nbPiecesJoueur(message);
+            }
         }
     }
 
+private void nbPiecesJoueur(string message){
+    if(message.Contains("Joueur 1")){
+        j1Text.text = message;
+    }else  if(message.Contains("Joueur 2")){
+    j2Text.text = message;
+    }else  if(message.Contains("Joueur 3")){
+    j3Text.text = message;
+    }else  if(message.Contains("Joueur 4")){
+    j4Text.text = message;
+    }
+}
     IEnumerator HandleSpaceshipAnimation(string message)
     {
         yield return new WaitForSeconds(3f);
@@ -296,10 +312,11 @@ public class PlacePiecesGrand : MonoBehaviour
 
         void ShowLostText()
     {
-        // Met à jour le texte de fin de jeu
+          endText.gameObject.SetActive(true);
+        
         endText.text = $"Fin de la partie ! Vous n'avez pas fini le puzzle";
-        // Affiche le texte
-        endText.gameObject.SetActive(true);
+       
+      
     }
 
       public void SendLostGame()

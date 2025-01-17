@@ -8,6 +8,8 @@ public class Timer : MonoBehaviour
     private float remainingTime;
     private bool isRunning = false;
 
+    [SerializeField] private AudioSource audioSource;
+
     void Start()
     {
         ResetTimer(); // Initialise le timer à la durée définie
@@ -58,5 +60,6 @@ public class Timer : MonoBehaviour
     private void GameLost()
     {
       GameObject.Find("Main Camera").GetComponent<PlacePiecesGrand>().SendLostGame();
+      audioSource.Play();
     }
 }

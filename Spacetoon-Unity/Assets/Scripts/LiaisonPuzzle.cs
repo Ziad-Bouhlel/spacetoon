@@ -30,6 +30,8 @@ public class LiaisonPuzzle : MonoBehaviour
     private bool randomizePiece = false;
     public LiaisonPuzzle otherLiaison;
     public string nom;
+
+    [SerializeField] private AudioSource placementAudioSource;
     void Start(){
         square1InitialPosition = square1.transform.position;
         square2InitialPosition = square2.transform.position;
@@ -63,6 +65,7 @@ public class LiaisonPuzzle : MonoBehaviour
             GameObject.Find("vertical"+nom).SetActive(false);
       
         }
+        placementAudioSource.Play();
     }
     public void RandomPlacementHorizontalPieces(){
         if(!randomizePiece){
