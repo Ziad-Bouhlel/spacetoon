@@ -13,6 +13,13 @@ public class ballScript : MonoBehaviour
     public Control control;
     public Player red,blue;
 
+    public int RedScore => redScore; // Propriété pour accéder au score de l'équipe rouge
+    public int BlueScore => blueScore; // Propriété pour accéder au score de l'équipe bleue
+
+
+    public AudioClip blopSound; // Son pour collision
+    public AudioSource audioSource; // Composant AudioSource
+
     public static bool wasGoal {  get; private set; }
     void Start()
     {
@@ -31,6 +38,13 @@ public class ballScript : MonoBehaviour
          {
             redTxt.text = (++redScore).ToString();
         }
+
+          // Jouer le son de but
+        if (audioSource != null && control.winSound != null)
+        {
+            audioSource.PlayOneShot(control.winSound);
+        }
+
         control.respawnBall();
         red.respawn();
         blue.respawn();
@@ -39,12 +53,15 @@ public class ballScript : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-    if (collision.collider.CompareTag("Player"))
-    {
+    if (collision.collider.CompareTag("Player") || collision.collider.CompareTag("Wall"))
+        {
+            // Jouer le son de collision
+            if (audioSource != null && blopSound != null)
+            {
+                audioSource.PlayOneShot(blopSound);
+            }
+        }
+    
     }
-    else
-    {
-    }
-}
    
 }
