@@ -2,6 +2,7 @@ package com.example.gamepad
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.Switch
@@ -14,8 +15,11 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.widget.TextView
 
+
 class MainActivity : AppCompatActivity() {
     //private lateinit var joystickView: JoystickView
+
+    private var mediaPlayer: MediaPlayer? = null
 
     private lateinit var playerSwitch: Switch
     private lateinit var coeffXInput: EditText
@@ -36,6 +40,8 @@ class MainActivity : AppCompatActivity() {
     protected override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.win_sound)
 
 //        val buttonUp: Button = findViewById(R.id.buttonUp)
 //        val buttonDown: Button = findViewById(R.id.buttonDown)
@@ -222,6 +228,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mediaPlayer?.release()
+        mediaPlayer = null
+
         try {
             writer?.close()
             socket?.close()
@@ -237,6 +246,7 @@ class MainActivity : AppCompatActivity() {
         if (vibrator.hasVibrator()) {
             vibrator.vibrate(1000) // Vibre pendant 500ms
         }
+        mediaPlayer?.start()
     }
 
 
