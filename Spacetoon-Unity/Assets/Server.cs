@@ -32,7 +32,6 @@ public class TCPClient : MonoBehaviour
         public float y;
     }
 
-    public TextMeshProUGUI jsonText;
     public GameObject puckJ1;
     public GameObject puckJ2;
     public float speedFactor = 20f;
@@ -69,11 +68,7 @@ public class TCPClient : MonoBehaviour
 
     void Start()
     {
-        if (jsonText == null)
-        {
-            print("Veuillez assigner une r�f�rence TextMeshPro dans l'inspecteur !");
-            return;
-        }
+        
 
         ConnectToServer();
         previousTime = Time.time;
@@ -101,8 +96,6 @@ public class TCPClient : MonoBehaviour
             tcpClient = new TcpClient(serverIP, port);
             stream = tcpClient.GetStream();
             print("Connect� au serveur TCP");
-            UpdateUIText("Connexion");
-            UpdateUIText(Camera.main.orthographicSize.ToString());
 
 
             // Lecture de la demande d'identité
@@ -124,10 +117,7 @@ public class TCPClient : MonoBehaviour
         }
         catch (SocketException ex)
         {
-            UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
-            {
-                UpdateUIText($"Erreur de connexion TCP : {ex.Message}");
-            });
+            
         }
     }
 
@@ -176,11 +166,7 @@ public class TCPClient : MonoBehaviour
             }
             catch (System.Exception ex)
             {
-                UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
-                {
-                    UpdateUIText($"Erreur dans ReceiveMessages : {ex.Message}");
-                });
-                break;
+               
             }
         }
     }
@@ -416,20 +402,6 @@ public class TCPClient : MonoBehaviour
         screenBounds = new Vector2(screenWidth / 2, screenHeight / 2);
     }
 
-
-    void UpdateUIText(string text)
-    {
-        UnityMainThreadDispatcher.ExecuteOnMainThread(() =>
-        {
-            if (jsonText != null)
-            {
-                jsonText.text = text;
-            }
-            else {
-            Debug.LogWarning("TextMeshProUGUI non assigné dans l'inspecteur.");
-            }
-        });
-    }
 
     void OnApplicationQuit()
     {
