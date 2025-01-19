@@ -40,7 +40,7 @@ public class LiaisonPuzzleTout : MonoBehaviour
     public Vector2 square4FinalPosition;
 
     private bool allSquaresLinked = false; // Nouvelle variable
-    private float transitionTime = 5f; // Temps total de la transition
+    private float transitionTime = 3.5f; // Temps total de la transition
     private float elapsedTime = 0f; // Temps écoulé pendant la transition
     private bool transitionComplete = false; // Vérifie si la transition est terminée
 

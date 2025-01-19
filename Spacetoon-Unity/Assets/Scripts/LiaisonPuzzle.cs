@@ -54,19 +54,51 @@ public class LiaisonPuzzle : MonoBehaviour
     }
 
     private void LierPuzzle(PiecePair pair)
+{
+    Debug.Log($"Paire liée : {pair.piece1.name} et {pair.piece2.name}");
+
+    // Start the linking animation with a coroutine
+    StartCoroutine(LinkPiecesOverTime());
+}
+
+private IEnumerator LinkPiecesOverTime()
+{
+    float duration = 2f;  // Duration of the animation in seconds
+    float elapsedTime = 0f;
+
+    Vector2 initialPosition1 = square1.transform.position;
+    Vector2 initialPosition2 = square2.transform.position;
+
+        if (!randomizePiece)
+        {
+            RandomPlacementHorizontalPieces();
+            GameObject.Find("vertical" + nom).SetActive(false);
+        }
+        // Move the pieces gradually over time
+        while (elapsedTime < duration)
     {
-        Debug.Log($"Paire liée : {pair.piece1.name} et {pair.piece2.name}");
-        square1.transform.position = square1FinalPosition;
-        square2.transform.position = square2FinalPosition;
+        float t = elapsedTime / duration;
+        
+        // Interpolate between initial and final positions
+        square1.transform.position = Vector2.Lerp(initialPosition1, square1FinalPosition, t);
+        square2.transform.position = Vector2.Lerp(initialPosition2, square2FinalPosition, t);
+
         square1Script.UpdatePositionPieces(square1Deplacement);
         square2Script.UpdatePositionPieces(square2Deplacement);
-        if(!randomizePiece){
-            RandomPlacementHorizontalPieces();
-            GameObject.Find("vertical"+nom).SetActive(false);
-      
-        }
-        placementAudioSource.Play();
+
+            elapsedTime += Time.deltaTime;
+        yield return null;  // Wait for the next frame
     }
+
+    // Ensure the final position is set at the end
+    square1.transform.position = square1FinalPosition;
+    square2.transform.position = square2FinalPosition;
+
+    // Call the scripts to update positions after animation
+
+    placementAudioSource.Play();
+}
+
     public void RandomPlacementHorizontalPieces(){
         if(!randomizePiece){
             if(nom == "Haut"){
