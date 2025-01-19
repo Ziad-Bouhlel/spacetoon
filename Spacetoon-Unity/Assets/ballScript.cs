@@ -33,10 +33,12 @@ public class ballScript : MonoBehaviour
         if(other.tag == "red")
          {
             blueTxt.text = (++blueScore).ToString();
+            NotifyGoalToServer("blue");
         }
         else if(other.tag == "blue")
          {
             redTxt.text = (++redScore).ToString();
+            NotifyGoalToServer("red");
         }
 
           // Jouer le son de but
@@ -48,6 +50,24 @@ public class ballScript : MonoBehaviour
         control.respawnBall();
         red.respawn();
         blue.respawn();
+    }
+
+    private void NotifyGoalToServer(string team)
+    {
+        string message = $"IDENTITY:hockeyJeu|GOAL:{team}";
+        Debug.Log($"[NotifyGoalToServer] Message préparé : {message}");
+        // Envoyez le message via un TCPClient
+        TCPClient client = FindObjectOfType<TCPClient>();
+
+        if (client != null)
+        {
+            client.SendMessage(message); // Appel à la méthode existante
+            Debug.Log($"[NotifyGoalToServer] Message envoyé au serveur : {message}");
+        }
+        else
+        {
+            Debug.LogError("TCPClient introuvable !");
+        }
     }
 
 

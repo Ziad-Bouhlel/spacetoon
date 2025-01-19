@@ -88,8 +88,27 @@ def handle_hockey_joueur2(message):
     send_to_client("hockeyJeu", message)
 
 def handle_hockey_jeu(message):
-    print(f"Traitement de hockeyJeu : {message}")
-    #TODO : si je jeu de hockey envoie des messages
+    if message.startswith("IDENTITY:hockeyJeu|GOAL:"):
+        _, goal_message = message.split("|", 1)  # Sépare l'identité et la commande
+        _, team = goal_message.split("GOAL:")  # Extrait l'équipe qui a marqué
+
+        # Détermine quel joueur notifier
+        player_identity = "hockeyJoueur1" if team == "blue" else "hockeyJoueur2"
+
+        # Envoie la vibration au joueur concerné
+        if player_identity in clients_by_name:
+            try:
+                client_socket = clients_by_name[player_identity]
+                client_socket.sendall("VIBRATE".encode('utf-8'))  # Message de vibration
+                print(f"Message de vibration envoyé à {player_identity}")
+            except Exception as e:
+                print(f"Erreur d'envoi à {player_identity} : {e}")
+        else:
+            print(f"Client {player_identity} introuvable.")
+    else:
+        print("Message non reconnu ou non pertinent.")
+
+
 
 def handle_menu_du_jeu(message):
     if "puzzle" in message:

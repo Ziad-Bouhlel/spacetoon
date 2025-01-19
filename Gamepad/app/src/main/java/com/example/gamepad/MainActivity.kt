@@ -1,6 +1,7 @@
 package com.example.gamepad
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.Switch
@@ -9,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.io.PrintWriter
 import java.net.Socket
+import android.os.VibrationEffect
+import android.os.Vibrator
 
 class MainActivity : AppCompatActivity() {
     //private lateinit var joystickView: JoystickView
@@ -19,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var padView: PadView
 
-    private val SERVER_IP = "172.20.10.3" // Remplace par l'adresse IP de ton serveur
+    private val SERVER_IP = "172.20.10.5" // Remplace par l'adresse IP de ton serveur
     private val SERVER_PORT = 5000 // Remplace par le port de ton serveur
     private var socket: Socket? = null
     private var writer: PrintWriter? = null
@@ -134,6 +137,17 @@ class MainActivity : AppCompatActivity() {
                     throw Exception("Aucune demande d'identité reçue du serveur.")
                 }
 
+                while (true) {
+                    val message = reader.readLine() ?: break
+                    println("Message reçu du serveur : $message")
+
+                    if (message == "VIBRATE") {
+                        // Déclenche la vibration sur le téléphone
+                        runOnUiThread { triggerVibration() }
+                    }
+                }
+
+
                 runOnUiThread {
                     Toast.makeText(
                         this@MainActivity,
@@ -215,4 +229,16 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
     }
+
+
+
+    private fun triggerVibration() {
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (vibrator.hasVibrator()) {
+            vibrator.vibrate(500) // Vibre pendant 500ms
+        }
+    }
+
+
+
 }
