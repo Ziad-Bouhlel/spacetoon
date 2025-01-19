@@ -76,94 +76,31 @@ public class Control : MonoBehaviour
     private void EndGame()
     {
         isGameOver = true;
-        
-        if (backgroundMusic != null)
-        {
-            backgroundMusic.Stop();
-        }
-
-        DisableGameplay();
-
-        string winner = DetermineWinner();
-
-         if (winnerText != null)
-        {
-            StartCoroutine(ShowWinner(winner));
-        }
-
-        // Joue le son de fin de jeu
-        if (audioSource != null && winSound != null)
-        {
-            audioSource.PlayOneShot(winSound);
-        }
-    }
-
-
-    private void DisableGameplay()
-    {
-        // Désactive les mouvements des joueurs
-        if (redPlayer != null)
-        {
-            redPlayer.enabled = false;
-        }
-        if (bluePlayer != null)
-        {
-            bluePlayer.enabled = false;
-        }
-
-        // Désactive la balle
-        if (ball != null)
-        {
-            Rigidbody2D ballRb = ball.GetComponent<Rigidbody2D>();
-            if (ballRb != null)
-            {
-                ballRb.velocity = Vector2.zero;
-                ballRb.isKinematic = true;
-            }
-        }
-    }
-
-
-
-    private string DetermineWinner()
-    {
         if (ballScript != null)
         {
             int redScore = ballScript.RedScore; // Obtenez les scores depuis ballScript
             int blueScore = ballScript.BlueScore;
 
-            if (redScore > blueScore)
+
+            string winner = redScore > blueScore
+                ? "Red Team Wins!"
+                : blueScore > redScore
+                ? "Blue Team Wins!"
+                : "It's a Draw!";
+            
+            if (winnerText != null)
+
+
             {
-                return "Red Team Wins!";
+                winnerText.text = winner;
+                winnerText.gameObject.SetActive(true); // Affiche le texte du gagnant
             }
-            else if (blueScore > redScore)
+             if (audioSource != null && winSound != null)
             {
-                return "Blue Team Wins!";
-            }
-            else
-            {
-                return "It's a Draw!";
+            audioSource.PlayOneShot(winSound);
             }
         }
-        return "No winner!";
+                 
     }
-
-
-    private IEnumerator ShowWinner(string winner)
-    {
-        winnerText.text = winner;
-        winnerText.gameObject.SetActive(true);
-
-        // Animation simple pour afficher le texte
-        float scale = 0.5f;
-        while (scale < 1f)
-        {
-            scale += Time.deltaTime * 2f; // Augmente la taille progressivement
-            winnerText.transform.localScale = new Vector3(scale, scale, scale);
-            yield return null;
-        }
-        winnerText.transform.localScale = Vector3.one;
-    }
-
-
 }
+
