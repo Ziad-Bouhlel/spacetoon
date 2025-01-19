@@ -12,6 +12,7 @@ import java.io.PrintWriter
 import java.net.Socket
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.widget.TextView
 
 class MainActivity : AppCompatActivity() {
     //private lateinit var joystickView: JoystickView
@@ -19,7 +20,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var playerSwitch: Switch
     private lateinit var coeffXInput: EditText
     private lateinit var coeffYInput: EditText
-
     private lateinit var padView: PadView
 
     private val SERVER_IP = "192.168.1.16" // Remplace par l'adresse IP de ton serveur
@@ -142,8 +142,8 @@ class MainActivity : AppCompatActivity() {
                     println("Message reçu du serveur : $message")
 
                     if (message == "VIBRATE") {
-                        // Déclenche la vibration sur le téléphone
-                        runOnUiThread { triggerVibration() }
+
+                        triggerVibration();
                     }
                 }
 
@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity() {
     private fun triggerVibration() {
         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (vibrator.hasVibrator()) {
-            vibrator.vibrate(500) // Vibre pendant 500ms
+            vibrator.vibrate(1000) // Vibre pendant 500ms
         }
     }
 

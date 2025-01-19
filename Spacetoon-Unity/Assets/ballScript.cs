@@ -9,6 +9,7 @@ public class ballScript : MonoBehaviour
     private Rigidbody2D rb;
     public TextMeshProUGUI redTxt, blueTxt;
     private int redScore, blueScore;
+    public TCPClient tCPClient;
 
     public Control control;
     public Player red,blue;
@@ -33,12 +34,12 @@ public class ballScript : MonoBehaviour
         if(other.tag == "red")
          {
             blueTxt.text = (++blueScore).ToString();
-            NotifyGoalToServer("blue");
+            tCPClient.goalManager("blue");
         }
         else if(other.tag == "blue")
          {
             redTxt.text = (++redScore).ToString();
-            NotifyGoalToServer("red");
+            tCPClient.goalManager("red");
         }
 
           // Jouer le son de but

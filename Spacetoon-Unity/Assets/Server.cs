@@ -62,7 +62,6 @@ public class TCPClient : MonoBehaviour
     private Vector2 positionJ1, positionJ2;
     private Vector2 StandartPosJ1, StandartPosJ2;
 
-
     public SpriteRenderer p;
     Vector2 playerSize;
 
@@ -253,8 +252,6 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-
-
     void checkPos(Vector2 newVector, double x1, double x2, GameObject puck)
     {
         Vector3 newPos = puck.transform.position+new Vector3(newVector.x, -newVector.y, 0);
@@ -276,6 +273,49 @@ public class TCPClient : MonoBehaviour
         {
             checkPos(jsonData, -15.5, -19.7, puckJ2);
         }
+    }
+    void CalculateScreenBounds()
+    {
+        float screenHeight = Camera.main.orthographicSize * 2;
+        float screenWidth = screenHeight * Screen.width / Screen.height;
+
+        screenBounds = new Vector2(screenWidth / 2, screenHeight / 2);
+    }
+
+
+    void OnApplicationQuit()
+    {
+        Cleanup();
+    }
+
+    void OnDestroy()
+    {
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            receiveThread.Abort();
+        }
+        stream?.Close();
+        tcpClient?.Close();
+    }
+
+    void Cleanup()
+    {
+        if (receiveThread != null && receiveThread.IsAlive)
+        {
+            receiveThread.Abort();
+        }
+        stream?.Close();
+        tcpClient?.Close();
+        print("Connexion TCP ferm�e");
+    }
+
+    public void goalManager(string type)
+    {
+        print($"GOAL {type}");
+        if (type == null) return;
+
+        string message = $"IDENTITY:hockeyJeu|GOAL:{type}";
+        SendMessage(message);
     }
 
     /*
@@ -301,8 +341,7 @@ public class TCPClient : MonoBehaviour
 
             if (Mathf.Abs(x) < 1 || Mathf.Abs(z) < 1) return;
 
-            string accelerometerMessage = "";
-            if (x > y && x > z)
+            strin && x > z)
             {
                 accelerometerMessage = $"X: {x:F2}";
 
@@ -394,38 +433,4 @@ public class TCPClient : MonoBehaviour
     }
     */
 
-    void CalculateScreenBounds()
-    {
-        float screenHeight = Camera.main.orthographicSize * 2;
-        float screenWidth = screenHeight * Screen.width / Screen.height;
-
-        screenBounds = new Vector2(screenWidth / 2, screenHeight / 2);
-    }
-
-
-    void OnApplicationQuit()
-    {
-        Cleanup();
-    }
-
-    void OnDestroy()
-    {
-        if (receiveThread != null && receiveThread.IsAlive)
-        {
-            receiveThread.Abort();
-        }
-        stream?.Close();
-        tcpClient?.Close();
-    }
-
-    void Cleanup()
-    {
-        if (receiveThread != null && receiveThread.IsAlive)
-        {
-            receiveThread.Abort();
-        }
-        stream?.Close();
-        tcpClient?.Close();
-        print("Connexion TCP ferm�e");
-    }
 }

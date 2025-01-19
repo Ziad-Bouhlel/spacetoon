@@ -81,6 +81,7 @@ public class Control : MonoBehaviour
             int redScore = ballScript.RedScore; // Obtenez les scores depuis ballScript
             int blueScore = ballScript.BlueScore;
 
+
             string winner = redScore > blueScore
                 ? "Red Team Wins!"
                 : blueScore > redScore
