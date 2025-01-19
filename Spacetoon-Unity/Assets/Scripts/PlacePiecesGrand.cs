@@ -87,6 +87,7 @@ public class PlacePiecesGrand : MonoBehaviour
         {
             if (message.Contains("{\"start\":\"puzzle\""))
             {
+                retrieveValueTimer(message);
                 restartGame();
                 waiting.SetActive(false);
                 ambientSound.Play();
@@ -121,6 +122,11 @@ public class PlacePiecesGrand : MonoBehaviour
             }
         }
     }
+
+private retrieveValueTimer(string message){
+    Message json = JsonUtility.FromJson<Message>(message);
+    Timer.startTimeInSeconds = json.chrono;
+}
 
 private void nbPiecesJoueur(string message){
     if(message.Contains("Joueur 1")){
@@ -375,4 +381,10 @@ private void nbPiecesJoueur(string message){
         public string piece;
         public string status;
     }
+    [System.Serializable]
+public class Message
+{
+    public string start;
+    public int chrono;
+}
 }

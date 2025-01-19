@@ -4,7 +4,7 @@ using UnityEngine;
 public class Timer : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private float startTimeInSeconds = 30f; 
+    [SerializeField] public float startTimeInSeconds = 30f; 
     private float remainingTime;
     private bool isRunning = false;
 

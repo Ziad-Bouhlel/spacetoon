@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Net.Sockets;
 using System.Text;
+using TMPro;
 
 public class ManageMenu : MonoBehaviour
 {
@@ -14,11 +15,21 @@ public class ManageMenu : MonoBehaviour
     public GameObject haloPuzzle; // Halo lumineux pour le puzzle
     public Button playButton; // Bouton pour lancer le jeu
 
+    public GameObject hockeyAll;
+
+    public GameObject chronoAll;
+
     private GameObject selectedIcon = null; // L'icône actuellement sélectionnée
 
     private bool puzzleSelected = false;
     private bool hockeySelected = false;
 
+    private bool chronoSetup = false;
+
+    private int chrono = 60;
+
+    public TextMeshProUGUI chronoText1;
+    public TextMeshProUGUI chronoText2;
     // Paramètres pour la connexion réseau
     public string serverIP = "192.168.49.1"; // Adresse IP du serveur
     private int serverPort = 5000;        // Port du serveur
@@ -34,8 +45,7 @@ public class ManageMenu : MonoBehaviour
         SetPlayButtonInteractable(false);
 
         // Ajouter l'événement au bouton Play
-        playButton.onClick.AddListener(StartGame);
-
+        
         // Établir une connexion avec le serveur
         try
         {
@@ -120,18 +130,27 @@ public class ManageMenu : MonoBehaviour
             }
     }
 
-    void StartGame()
+    public void StartGame()
     {
-        if (selectedIcon == iconHockey)
+        if (chronoSetup)
         {
-            SceneManager.LoadScene("AirHockey");
-        }
-        else if (selectedIcon == iconPuzzle)
-        {
-             string message = "{\"start\":\"puzzle\"}";
+            Debug.Log("oookkk");
+            string message = "{\"start\":\"puzzle\", \"chrono\": "+chrono+"}";
             SendMessageServer(message); // Envoi de la donnée au serveur
             SceneManager.LoadScene("puzzleRomain");
         }
+        else if (selectedIcon == iconHockey)
+        {
+            SceneManager.LoadScene("AirHockey");
+        }
+        else if (selectedIcon == iconPuzzle && !chronoSetup)
+        {
+            hockeyAll.SetActive(false);
+            chronoAll.SetActive(true);
+            chronoSetup = true;
+        
+        }
+    
     }
 
 
@@ -172,4 +191,17 @@ public class ManageMenu : MonoBehaviour
         }
     }
 
+    public void PlusChrono(){
+        if(chrono <300)
+            chrono +=60;
+        chronoText1.text = chrono/60 +" : 00";
+        chronoText2.text = chrono/60 +" : 00";
+    }
+
+    public void MoinsChrono(){
+        if(chrono> 60)
+            chrono -=60;
+        chronoText1.text = chrono/60 +" : 00";
+        chronoText2.text = chrono/60 +" : 00";
+    }
 }
