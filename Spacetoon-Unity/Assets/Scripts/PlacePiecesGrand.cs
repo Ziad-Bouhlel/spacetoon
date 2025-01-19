@@ -197,7 +197,7 @@ private void nbPiecesJoueur(string message){
 }
     IEnumerator HandleSpaceshipAnimation(string message)
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
         string[] words = message.Split('_');
         string pieceNumber = words[words.Length - 1];
         Debug.Log(pieceNumber);
@@ -254,7 +254,7 @@ private void nbPiecesJoueur(string message){
 
     IEnumerator HandlePlacementMessage(string message)
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(4f);
         try
         {
           

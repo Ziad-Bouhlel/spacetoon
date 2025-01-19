@@ -39,7 +39,7 @@ public class DragAndDropGrand : MonoBehaviour
     private bool finPartie= false;
 
     public Button targetImage;
-
+    public Button targetImage2;
     public string identityName;
 
     public List<CheckPiecesScript> squares;
@@ -102,7 +102,7 @@ public class DragAndDropGrand : MonoBehaviour
          if (PlacedPieces == 35 && !finPartie)
         {
             //ShowTargetImage();
-           SendMessageServer("Fin du jeu");
+           SendMessageServer("{Fin du jeu}");
            finPartie = true;
            
         }
@@ -136,6 +136,7 @@ public class DragAndDropGrand : MonoBehaviour
    public void ShowTargetImage()
     {
             targetImage.gameObject.SetActive(true); 
+            targetImage2.gameObject.SetActive(true); 
     }
 
   public void SendPlacementMessage(string name)
