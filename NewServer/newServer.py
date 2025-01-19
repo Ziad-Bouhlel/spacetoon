@@ -19,8 +19,11 @@ def handle_client(client_socket, address):
 
     try:
         # Recevoir la première donnée pour identifier le client
-        client_socket.sendall("IDENTIFY".encode('utf-8'))  # Demande d'identification
+        print("Envoi de la demande 'IDENTIFY' au client...")
+        client_socket.sendall("IDENTIFY\n".encode('utf-8'))  # Demande d'identification
+        print("Envoi de la demande 'IDENTIFY' au client...")
         identity = client_socket.recv(1024).decode('utf-8')  # Réception de l'identité
+        print(f"Identité reçue : {identity}")
         if not identity:
             raise Exception("Aucune identité reçue.")
 
@@ -85,8 +88,31 @@ def handle_hockey_joueur2(message):
     send_to_client("hockeyJeu", message)
 
 def handle_hockey_jeu(message):
-    print(f"Traitement de hockeyJeu : {message}")
-    #TODO : si je jeu de hockey envoie des messages
+    if message.startswith("IDENTITY:hockeyJeu|GOAL:"):
+        _, goal_message = message.split("|", 1)  # Sépare l'identité et la commande
+        _, team = goal_message.split("GOAL:")  # Extrait l'équipe qui a marqué
+
+        team = team.strip()
+        print(f"Équipe ayant marqué : {team}")
+        print("blue" == team)
+        # Détermine quel joueur notifier
+        player_identity = "hockeyJoueur1" if team == "blue" else "hockeyJoueur2"
+        
+        print(f"Envoi de vibration à {player_identity}")
+        # Envoie la vibration au joueur concerné
+        if player_identity in clients_by_name:
+            try:
+                client_socket = clients_by_name[player_identity]
+                client_socket.sendall("VIBRATE\n".encode('utf-8'))  # Message de vibration
+                print(f"Message de vibration envoyé à {player_identity}")
+            except Exception as e:
+                print(f"Erreur d'envoi à {player_identity} : {e}")
+        else:
+            print(f"Client {player_identity} introuvable.")
+    else:
+        print("Message non reconnu ou non pertinent.")
+
+
 
 def handle_menu_du_jeu(message):
     if "puzzle" in message:
