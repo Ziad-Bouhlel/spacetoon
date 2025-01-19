@@ -120,7 +120,7 @@ public class piceseScriptGrand : MonoBehaviour
     {
         if (connexionServer != null)
         {
-            connexionServer.SendMessageServer("piece posée " + gameObject.name);
+            connexionServer.SendMessageServer("{piece posée " + gameObject.name +"}");
             Debug.Log("Message envoyé : animation démarrée pour " + gameObject.name);
         }
         else

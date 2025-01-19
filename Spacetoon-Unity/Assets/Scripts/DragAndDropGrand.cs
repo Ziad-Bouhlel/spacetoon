@@ -82,7 +82,7 @@ public class DragAndDropGrand : MonoBehaviour
         {
             if (message.Contains("Puzzle lost"))
             {
-               //ShowTargetImage(); 
+               ShowTargetImage(); 
                  for (int i = 0; i < 35; i++)
                 {
                     Debug.Log(i);
@@ -172,7 +172,7 @@ public class DragAndDropGrand : MonoBehaviour
             {
                 // Construire un message JSON
                
-                byte[] data = Encoding.UTF8.GetBytes(message);
+                byte[] data = Encoding.UTF8.GetBytes(message );
 
                 // Envoyer les données au serveur
                 NetworkStream stream = client.GetStream();

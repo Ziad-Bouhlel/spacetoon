@@ -41,8 +41,8 @@ public class LiaisonPuzzleTout : MonoBehaviour
 
     private bool allSquaresLinked = false; // Nouvelle variable
     private float transitionTime = 5f; // Temps total de la transition
-    private float elapsedTime = 0f; // Temps écoulé pendant la transition
-    private bool transitionComplete = false; // Vérifie si la transition est terminée
+    private float elapsedTime = 0f; // Temps ï¿½coulï¿½ pendant la transition
+    private bool transitionComplete = false; // Vï¿½rifie si la transition est terminï¿½e
 
     public string nom;
 
@@ -73,8 +73,8 @@ public class LiaisonPuzzleTout : MonoBehaviour
         if (!allSquaresLinked && AreAllSquaresCompleted())
         {
             Position();
-            allSquaresLinked = true; // Marque la liaison comme commencée
-            elapsedTime = 0f; // Réinitialise le temps pour la transition
+            allSquaresLinked = true; // Marque la liaison comme commencï¿½e
+            elapsedTime = 0f; // Rï¿½initialise le temps pour la transition
         }
 
         if (allSquaresLinked && elapsedTime <= transitionTime)
@@ -82,12 +82,12 @@ public class LiaisonPuzzleTout : MonoBehaviour
             horizontal.SetActive(false);
             elapsedTime += Time.deltaTime;
 
-            float t = Mathf.Clamp01(elapsedTime / transitionTime); // Normalise le temps écoulé
+            float t = Mathf.Clamp01(elapsedTime / transitionTime); // Normalise le temps ï¿½coulï¿½
 
             squareVide3.transform.rotation = Quaternion.Slerp(squareVide3InitialRotation, squareVide3FinalRotation, t);
             squareVide4.transform.rotation = Quaternion.Slerp(squareVide4InitialRotation, squareVide4FinalRotation, t);
 
-            // Interpolation des carrés vides
+            // Interpolation des carrï¿½s vides
             squareVide1.transform.position = Vector2.Lerp(square1InitialPosition, square1FinalPosition, t);
             squareVide2.transform.position = Vector2.Lerp(square2InitialPosition, square2FinalPosition, t);
             squareVide3.transform.position = Vector2.Lerp(square3InitialPosition, square3FinalPosition, t);
@@ -107,7 +107,7 @@ public class LiaisonPuzzleTout : MonoBehaviour
         buttonEnd1.gameObject.SetActive(true);
         buttonEnd2.gameObject.SetActive(true);
 
-        // Marquer la transition comme terminée
+        // Marquer la transition comme terminï¿½e
         transitionComplete = true;
     }
 

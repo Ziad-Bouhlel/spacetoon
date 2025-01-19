@@ -70,7 +70,7 @@ public class CheckPiecesScript : MonoBehaviour
         return nbPieceChecked == objectsToCheck.Count;
     }
     private void sendPiecesPlayer(){
-  dragAndDropGrand.SendMessageServer(joueur +" : " + (objectsToCheck.Count-nbPieceChecked) +"/" + objectsToCheck.Count);
+  dragAndDropGrand.SendMessageServer("{"+ joueur +" : " + (objectsToCheck.Count-nbPieceChecked) +"/" + objectsToCheck.Count +"}");
  
     }
     private void SetSquareColor(Color color)

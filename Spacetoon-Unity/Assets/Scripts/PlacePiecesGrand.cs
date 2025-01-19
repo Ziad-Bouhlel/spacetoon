@@ -56,37 +56,83 @@ public class PlacePiecesGrand : MonoBehaviour
     }
 
     void ReceiveMessages()
+{
+    try
     {
-        try
+        byte[] buffer = new byte[1024];
+        StringBuilder messageBuilder = new StringBuilder();
+        
+        while (isRunning)
         {
-            byte[] buffer = new byte[1024];
-            while (isRunning)
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            if (bytesRead > 0)
             {
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                if (bytesRead > 0)
+                string receivedData = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                messageBuilder.Append(receivedData);
+                
+                // Traiter tous les messages complets
+                string accumulated = messageBuilder.ToString();
+                int startIdx = 0;
+                int curlyCount = 0;
+                
+                // Parcourir les caractères pour identifier les messages JSON complets
+                for (int i = 0; i < accumulated.Length; i++)
                 {
-                    string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    Debug.Log("Message reçu du serveur : " + message);
-
-                    // Ajouter le message à la file d'attente
-                    messageQueue.Enqueue(message);
+                    if (accumulated[i] == '{')
+                    {
+                        if (curlyCount == 0)
+                        {
+                            startIdx = i;
+                        }
+                        curlyCount++;
+                    }
+                    else if (accumulated[i] == '}')
+                    {
+                        curlyCount--;
+                        
+                        // Message JSON complet trouvé
+                        if (curlyCount == 0)
+                        {
+                            string completeMessage = accumulated.Substring(startIdx, i - startIdx + 1);
+                            messageQueue.Enqueue(completeMessage);
+                            Debug.Log("Message reçu du serveur : " + completeMessage);
+                            
+                            // Si c'est le dernier caractère, vider le builder
+                            if (i == accumulated.Length - 1)
+                            {
+                                messageBuilder.Clear();
+                            }
+                        }
+                    }
+                }
+                
+                // Si il reste des données incomplètes, garder uniquement la partie non traitée
+                if (messageBuilder.Length > 0 && curlyCount > 0)
+                {
+                    messageBuilder = new StringBuilder(accumulated.Substring(startIdx));
+                }
+                else if (curlyCount == 0)
+                {
+                    messageBuilder.Clear();
                 }
             }
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Erreur lors de la réception des messages : " + e.Message);
-            isRunning = false;
-        }
     }
+    catch (System.Exception e)
+    {
+        Debug.LogError("Erreur lors de la réception des messages : " + e.Message);
+        isRunning = false;
+    }
+}
 
     void Update()
     {
-        // Traiter les messages en file d'attente
         while (messageQueue.TryDequeue(out string message))
         {
+            Debug.Log(message);
             if (message.Contains("{\"start\":\"puzzle\""))
             {
+               
                 retrieveValueTimer(message);
                 restartGame();
                 waiting.SetActive(false);
@@ -100,11 +146,15 @@ public class PlacePiecesGrand : MonoBehaviour
             }
             if (message.Contains("Fin du jeu"))
             {
+                   message = message.Replace("}","");
+            message = message.Replace("{","");
                 Debug.Log("Fin du jeu détectée !");
                 timer.StopTimer(); // Arrête le timer
                 ShowEndText(); // Affiche le texte de fin de jeu
             }
             if(message.Contains("Quitter")){
+                   message = message.Replace("}","");
+            message = message.Replace("{","");
                 waiting.SetActive(true);
                 ambientSound.Stop();
                 endText.gameObject.SetActive(false);
@@ -112,20 +162,26 @@ public class PlacePiecesGrand : MonoBehaviour
             }
             if (message.Contains("piece posée"))
             {
+                   message = message.Replace("}","");
+            message = message.Replace("{","");
                StartCoroutine(HandleSpaceshipAnimation(message));
             }
             if (message.Contains("Light")){
+                   message = message.Replace("}","");
+            message = message.Replace("{","");
                 changeSprite();
             }
             if(message.Contains("Joueur")){
+                   message = message.Replace("}","");
+            message = message.Replace("{","");
                 nbPiecesJoueur(message);
             }
         }
     }
 
-private retrieveValueTimer(string message){
+private void retrieveValueTimer(string message){
     Message json = JsonUtility.FromJson<Message>(message);
-    Timer.startTimeInSeconds = json.chrono;
+    timer.startTimeInSeconds = json.chrono;
 }
 
 private void nbPiecesJoueur(string message){
@@ -364,6 +420,10 @@ private void nbPiecesJoueur(string message){
     }
     timer.ResetTimer();
     updatePiecesRestantes();
+    nbPiecesJoueur("Joueur 1  :  10/10");
+    nbPiecesJoueur("Joueur 2  :  8/8");
+    nbPiecesJoueur("Joueur 3  :  9/9");
+    nbPiecesJoueur("Joueur 4  :  8/8");
 }
 
     void OnDestroy()
