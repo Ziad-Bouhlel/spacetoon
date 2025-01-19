@@ -8,12 +8,17 @@ using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
 using UnityEngine.UI;
+using System.Linq;
+
 public class DragAndDropGrand : MonoBehaviour
 {
     public Sprite[] Levels;
     public GameObject EndMenu;
     public int PlacedPieces = 0;
     public GameObject SelectedPiece;
+    public Button[] buttons; // Les 4 boutons passés en paramètre
+    public Sprite newImage;  // L'image à appliquer temporairement
+    public Sprite originalImage; // L'image d'origine
 
     private Dictionary<int, GameObject> activeTouches = new Dictionary<int, GameObject>();
     private Dictionary<int, Vector3> originalPositions = new Dictionary<int, Vector3>();
@@ -63,7 +68,7 @@ public class DragAndDropGrand : MonoBehaviour
         else
         {
            // Debug.Log("targetImage est bien assigné dans Start");
-            targetImage.gameObject.SetActive(false);
+            //targetImage.gameObject.SetActive(false);
         }
     }
 
@@ -77,7 +82,7 @@ public class DragAndDropGrand : MonoBehaviour
         {
             if (message.Contains("Puzzle lost"))
             {
-               ShowTargetImage(); 
+               //ShowTargetImage(); 
                  for (int i = 0; i < 35; i++)
                 {
                     Debug.Log(i);
@@ -96,7 +101,7 @@ public class DragAndDropGrand : MonoBehaviour
 
          if (PlacedPieces == 35 && !finPartie)
         {
-            ShowTargetImage();
+            //ShowTargetImage();
            SendMessageServer("Fin du jeu");
            finPartie = true;
            
@@ -184,35 +189,52 @@ public class DragAndDropGrand : MonoBehaviour
             Debug.LogError("Connexion au serveur perdue.");
         }
     }
+
+    private GameObject GetTopMostPieceAtPosition(Vector2 position)
+    {
+        // Récupérer toutes les pièces à cette position
+        RaycastHit2D[] hits = Physics2D.RaycastAll(position, Vector2.zero);
+
+        // Filtrer pour ne garder que les pièces de puzzle
+        var puzzlePieces = hits
+            .Where(hit => hit.collider != null &&
+                   hit.transform.CompareTag("Puzzle"))
+            .Select(hit => hit.transform.gameObject)
+            .ToList();
+
+        if (puzzlePieces.Count == 0)
+            return null;
+
+        // Retourner la pièce avec le plus grand sortingOrder
+        return puzzlePieces
+            .OrderByDescending(piece => piece.GetComponent<SortingGroup>().sortingOrder)
+            .FirstOrDefault();
+    }
+
     private void HandleMouseInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.transform != null && hit.transform.CompareTag("Puzzle") )
+            Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            GameObject topPiece = GetTopMostPieceAtPosition(mousePosition);
+
+            if (topPiece != null && !topPiece.GetComponent<piceseScriptGrand>().InRightPosition)
             {
-                GameObject piece = hit.transform.gameObject;
-               
                 // Détection du double-clic
-                if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
+                if (topPiece == lastClickedObject && Time.time - lastClickTime < doubleClickTime)
                 {
-                    //RotatePiece(piece);
-                    //lastClickedObject = null; 
+                    // Votre logique de double-clic ici
                 }
                 else
                 {
                     lastClickTime = Time.time;
-                    lastClickedObject = piece;
+                    lastClickedObject = topPiece;
 
                     // Sélection pour drag & drop
-                    if (!piece.GetComponent<piceseScriptGrand>().InRightPosition)
-                    {
-                      
-                        SelectedPiece = piece;
-                        SelectedPiece.GetComponent<piceseScriptGrand>().Selected = true;
-                        SelectedPiece.GetComponent<SortingGroup>().sortingOrder = OIL;
-                        OIL++;
-                    }
+                    SelectedPiece = topPiece;
+                    SelectedPiece.GetComponent<piceseScriptGrand>().Selected = true;
+                    SelectedPiece.GetComponent<SortingGroup>().sortingOrder = OIL;
+                    OIL++;
                 }
             }
         }
@@ -243,28 +265,28 @@ public class DragAndDropGrand : MonoBehaviour
             switch (touch.phase)
             {
                 case TouchPhase.Began:
-                    RaycastHit2D hit = Physics2D.Raycast(touchPosition, Vector2.zero);
-                    if (hit.transform != null && hit.transform.CompareTag("Puzzle"))
-                    {
-                        GameObject piece = hit.transform.gameObject;
+                    GameObject topPiece = GetTopMostPieceAtPosition(touchPosition);
 
+                    if (topPiece != null)
+                    {
                         // Détection du double-tap
-                        if (piece == lastClickedObject && Time.time - lastClickTime < doubleClickTime && !piece.GetComponent<piceseScriptGrand>().InRightPosition)
+                        if (topPiece == lastClickedObject && Time.time - lastClickTime < doubleClickTime &&
+                            !topPiece.GetComponent<piceseScriptGrand>().InRightPosition)
                         {
-                            //RotatePiece(piece);
-                            //lastClickedObject = null; // Réinitialiser après le double-tap
+                            // Votre logique de double-tap ici
                         }
                         else
                         {
                             lastClickTime = Time.time;
-                            lastClickedObject = piece;
+                            lastClickedObject = topPiece;
 
                             // Sélection pour drag & drop
-                            if (!piece.GetComponent<piceseScriptGrand>().InRightPosition && !activeTouches.ContainsKey(touch.fingerId))
+                            if (!topPiece.GetComponent<piceseScriptGrand>().InRightPosition &&
+                                !activeTouches.ContainsKey(touch.fingerId))
                             {
-                                activeTouches[touch.fingerId] = piece;
-                                piece.GetComponent<piceseScriptGrand>().Selected = true;
-                                piece.GetComponent<SortingGroup>().sortingOrder = OIL;
+                                activeTouches[touch.fingerId] = topPiece;
+                                topPiece.GetComponent<piceseScriptGrand>().Selected = true;
+                                topPiece.GetComponent<SortingGroup>().sortingOrder = OIL;
                                 OIL++;
                             }
                         }
@@ -327,9 +349,31 @@ public class DragAndDropGrand : MonoBehaviour
             }
     }
 
-    public void ActiveColor(){
+    public void ActiveColor()
+    {
         SendMessageServer("Light");
+        if (buttons.Length != 4 || newImage == null || originalImage == null)
+        {
+            Debug.LogError("Les boutons et les images doivent être correctement assignés.");
+            return;
+        }
+
+        foreach (Button button in buttons)
+        {
+            button.image.sprite = newImage;
+        }
+
+        StartCoroutine(RestoreOriginalImages());
     }
 
+    private IEnumerator RestoreOriginalImages()
+    {
+        yield return new WaitForSeconds(5f);
+
+        foreach (Button button in buttons)
+        {
+            button.image.sprite = originalImage;
+        }
+    }
  
 }
