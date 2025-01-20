@@ -51,7 +51,6 @@ public class PlacePiecesGrand : MonoBehaviour
         {
             Debug.LogError("Erreur de connexion au serveur : " + e.Message);
         }
-        timer.StartTimer();
         spaceship.SetActive(false); // Assure que le vaisseau est invisible au départ
     }
 
