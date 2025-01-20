@@ -36,7 +36,7 @@ public class TCPClient : MonoBehaviour
     public GameObject puckJ2;
     public float speedFactor = 20f;
 
-    public float velocityMultiplier = 0.5f;
+    public float velocityMultiplier = 2f;
     public float bufferTimeWindow = 0.000000005f; // Fenêtre de temps pour accumuler les messages (en secondes)
     private class BufferedMovement
     {
@@ -219,10 +219,10 @@ public class TCPClient : MonoBehaviour
                 // Appliquer le mouvement
                 UpdatePuckPhysics(puck, endPos, averageVelocity, xMax, xMin);
 
-                print($"Buffer size: {buffer.Count}\n" +
+                /*print($"Buffer size: {buffer.Count}\n" +
                            $"Total movement: {totalMovement}\n" +
                            $"Time window: {deltaTime:F3}s\n" +
-                           $"Velocity: {averageVelocity.magnitude:F2}");
+                           $"Velocity: {averageVelocity.magnitude:F2}");*/
             }
 
             // Vider le buffer

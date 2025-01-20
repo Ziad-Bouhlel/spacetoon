@@ -39,7 +39,7 @@ def handle_client(client_socket, address):
 
             # Décoder les données reçues
             message = data.decode('utf-8')
-            print(f"Données reçues de {identity} ({address}) : {message}")
+            #print(f"Données reçues de {identity} ({address}) : {message}")
 
             # Appeler une méthode spécifique en fonction de l'identité du client
             handle_message(identity, message)
@@ -80,11 +80,11 @@ def handle_message(identity, message):
 
 # Méthodes pour traiter les messages des différentes identités
 def handle_hockey_joueur1(message):
-    print(f"Traitement de hockeyJoueur1 : {message}")
+    #print(f"Traitement de hockeyJoueur1 : {message}")
     send_to_client("hockeyJeu", message)
 
 def handle_hockey_joueur2(message):
-    print(f"Traitement de hockeyJoueur2 : {message}")
+    #print(f"Traitement de hockeyJoueur2 : {message}")
     send_to_client("hockeyJeu", message)
 
 def handle_hockey_jeu(message):
@@ -157,7 +157,7 @@ def send_to_client(client_name, message):
         try:
             client_socket = clients_by_name[client_name]
             client_socket.sendall(message.encode('utf-8'))
-            print(f"Message envoyé à {client_name} : {message}")
+            #print(f"Message envoyé à {client_name} : {message}")
         except Exception as e:
             print(f"Erreur d'envoi à {client_name} : {e}")
     else:

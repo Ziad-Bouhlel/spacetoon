@@ -17,7 +17,7 @@ public class Control : MonoBehaviour
     public AudioSource audioSource; // Composant AudioSource
     public AudioSource backgroundMusic; // Musique d'ambiance
 
-    private float gameTime = 20f; // 2 minutes en secondes
+    private float gameTime = 120f; // 2 minutes en secondes
     private bool isGameOver = false;
 
     public ballScript ballScript;
