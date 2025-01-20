@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.Video; 
 
 public class Control : MonoBehaviour
 {
@@ -16,10 +17,17 @@ public class Control : MonoBehaviour
     public AudioSource audioSource; // Composant AudioSource
     public AudioSource backgroundMusic; // Musique d'ambiance
 
-    private float gameTime = 120f; // 2 minutes en secondes
+    private float gameTime = 20f; // 2 minutes en secondes
     private bool isGameOver = false;
 
     public ballScript ballScript;
+
+
+    public VideoPlayer videoPlayer; 
+    public string redWinVideoPath = "red-Win"; // Nom sans extension
+    public string blueWinVideoPath = "blue-Win"; // Nom sans extension
+    public string menuSceneName = "menuDuJeu"; // Nom de la scène du menu principal
+
 
     void Start()
     {
@@ -39,6 +47,26 @@ public class Control : MonoBehaviour
             backgroundMusic.loop = true; // Musique d'ambiance en boucle
             backgroundMusic.Play();
         }
+
+        if (videoPlayer == null)
+        {
+            Debug.Log("VideoPlayer is not assigned in the Inspector!");
+            videoPlayer = GameObject.Find("WinnerVideoPlayer").GetComponent<VideoPlayer>();
+            if (videoPlayer == null)
+            {
+                Debug.Log("No VideoPlayer found in the scene. Please assign one in the Inspector!");
+                return;
+            }
+        }
+
+        if (videoPlayer != null)
+        {
+            videoPlayer.gameObject.SetActive(false); // Cache le lecteur vidéo au début
+            videoPlayer.loopPointReached += OnVideoEnd; // Événement à appeler quand la vidéo se termine
+        }
+
+    
+
     }
 
     // Update is called once per frame
@@ -99,8 +127,36 @@ public class Control : MonoBehaviour
             {
             audioSource.PlayOneShot(winSound);
             }
-        }
-                 
+
+            Debug.Log($"Red Score: {redScore}, Blue Score: {blueScore}");
+            PlayWinnerVideo(redScore, blueScore);
+        }            
     }
+
+
+    private void PlayWinnerVideo(int redScore, int blueScore)
+    {
+        if (videoPlayer != null)
+        {
+            string videoToPlay = redScore > blueScore
+                ? redWinVideoPath
+                : blueWinVideoPath;
+
+            videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, videoToPlay + ".mp4");
+            videoPlayer.gameObject.SetActive(true);
+            videoPlayer.Play();
+            
+            Debug.Log($"Video to play: {videoToPlay}");
+            Debug.Log($"Video URL: {videoPlayer.url}");
+        }
+        //Debug.Log($"Videoplayer:null");
+    }
+
+    private void OnVideoEnd(VideoPlayer vp)
+    {
+        SceneManager.LoadScene(menuSceneName); // Retourne au menu principal
+    }
+    
+
 }
 
