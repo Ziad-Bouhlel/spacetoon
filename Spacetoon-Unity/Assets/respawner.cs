@@ -62,7 +62,7 @@ public class Control : MonoBehaviour
         if (videoPlayer != null)
         {
             videoPlayer.gameObject.SetActive(false); // Cache le lecteur vidéo au début
-            videoPlayer.loopPointReached += OnVideoEnd; // Événement à appeler quand la vidéo se termine
+            //videoPlayer.loopPointReached += OnVideoEnd; // Événement à appeler quand la vidéo se termine
         }
 
     
@@ -116,9 +116,20 @@ public class Control : MonoBehaviour
                 ? "Blue Team Wins!"
                 : "It's a Draw!";
             
+           
+
+            if (redScore > blueScore){
+                SceneManager.LoadScene("redWin");
+
+            }if (redScore < blueScore){
+                SceneManager.LoadScene("blueWin");
+            }
+
+            if (redScore == blueScore){
+                SceneManager.LoadScene("menuDuJeu");
+            }
+
             if (winnerText != null)
-
-
             {
                 winnerText.text = winner;
                 winnerText.gameObject.SetActive(true); // Affiche le texte du gagnant
@@ -129,7 +140,10 @@ public class Control : MonoBehaviour
             }
 
             Debug.Log($"Red Score: {redScore}, Blue Score: {blueScore}");
-            PlayWinnerVideo(redScore, blueScore);
+            
+            
+            //SceneManager.LoadScene("menuDuJeu");
+            //PlayWinnerVideo(redScore, blueScore);
         }            
     }
 
@@ -154,7 +168,7 @@ public class Control : MonoBehaviour
 
     private void OnVideoEnd(VideoPlayer vp)
     {
-        SceneManager.LoadScene(menuSceneName); // Retourne au menu principal
+        SceneManager.LoadScene("menuDuJeu"); // Retourne au menu principal
     }
     
 
