@@ -2,16 +2,26 @@
 
 
     <!--  Slider Joueur 1 ou Joueur 2  -->
-    <Switch android:id="@+id/playerSwitch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Joueur 1" android:textSize="16sp" android:textColor="@color/white" android:layout_alignParentTop="true" android:layout_centerHorizontal="true" android:checked="true"/>
+    <Switch android:id="@+id/playerSwitch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Joueur Bleu" android:textSize="16sp" android:textColor="@color/white" android:layout_alignParentTop="true" android:layout_centerHorizontal="true" android:checked="true"/>
+
     <!--  Coefficients multiplicateurs  -->
+
     <LinearLayout android:id="@+id/coeffLayout" android:layout_below="@id/playerSwitch" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:textColor="@color/white" android:layout_marginTop="16dp">
         <EditText android:id="@+id/coeffX" android:layout_width="wrap_content" android:layout_height="wrap_content" android:hint="Coeff X" android:textColorHint="@color/white" android:textColor="@color/white" android:inputType="numberDecimal" android:layout_margin="8dp" android:layout_weight="1"/>
         <EditText android:id="@+id/coeffY" android:layout_width="wrap_content" android:layout_height="wrap_content" android:hint="Coeff Y" android:textColorHint="@color/white" android:textColor="@color/white" android:inputType="numberDecimal" android:layout_margin="8dp" android:layout_weight="1"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connexion"
+            android:id="@+id/validBtn"/>
+
     </LinearLayout>
-<!--    <com.example.gamepad.JoystickView android:id="@+id/joystickView" android:layout_width="300dp" android:layout_height="300dp" android:layout_centerInParent="true"/>-->
+    <!--    <com.example.gamepad.JoystickView android:id="@+id/joystickView" android:layout_width="300dp" android:layout_height="300dp" android:layout_centerInParent="true"/>-->
 
     <com.example.gamepad.PadView
         android:id="@+id/padView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
 </RelativeLayout>

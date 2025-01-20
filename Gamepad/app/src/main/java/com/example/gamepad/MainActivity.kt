@@ -13,6 +13,7 @@ import java.io.PrintWriter
 import java.net.Socket
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.widget.Button
 import android.widget.TextView
 
 
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var coeffXInput: EditText
     private lateinit var coeffYInput: EditText
     private lateinit var padView: PadView
+    private lateinit var button: Button
 
     private val SERVER_IP = "192.168.49.1" // Remplace par l'adresse IP de ton serveur
     private val SERVER_PORT = 5000 // Remplace par le port de ton serveur
@@ -54,8 +56,9 @@ class MainActivity : AppCompatActivity() {
         coeffXInput = findViewById(R.id.coeffX)
         coeffYInput = findViewById(R.id.coeffY)
         padView = findViewById(R.id.padView)
+        button = findViewById(R.id.validBtn)
 
-        connectToServer()
+        //connectToServer()
 
 
 
@@ -90,14 +93,11 @@ class MainActivity : AppCompatActivity() {
         // Gestion du Switch Joueur 1 ou Joueur 2
         playerSwitch.setOnCheckedChangeListener { _, isChecked ->
             currentPlayer = if (isChecked) 1 else 2
-            playerSwitch.text = if (isChecked) "Joueur 1" else "Joueur 2"
+            playerSwitch.text = if (isChecked) "Joueur Bleu" else "Joueur Rouge"
 
-            if (isChecked) {
-                sendMessageToServer("hockeyJoueur1")
-            } else {
-                sendMessageToServer("hockeyJoueur2")
-            }
+
         }
+
 
         // Gestion des coefficients X et Y
         coeffXInput.setOnFocusChangeListener { _, _ ->
@@ -105,6 +105,10 @@ class MainActivity : AppCompatActivity() {
         }
         coeffYInput.setOnFocusChangeListener { _, _ ->
             coeffY = coeffYInput.text.toString().toFloatOrNull() ?: 1.0f
+        }
+        button.setOnClickListener {
+            connectToServer()
+
         }
     }
 
@@ -130,7 +134,11 @@ class MainActivity : AppCompatActivity() {
 
                 val reader = socket!!.getInputStream().bufferedReader()
                 println("En attente de la demande d'identité du serveur...")
-                sendMessageToServer("hockeyJoueur1")
+                if (playerSwitch.isChecked) {
+                    sendMessageToServer("hockeyJoueur1")
+                } else {
+                    sendMessageToServer("hockeyJoueur2")
+                }
 
                 val identifyRequest = reader.readLine() // Lit "IDENTIFY"
                 println("Demande reçue du serveur : $identifyRequest")
