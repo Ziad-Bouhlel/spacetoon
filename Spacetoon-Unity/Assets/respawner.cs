@@ -17,7 +17,7 @@ public class Control : MonoBehaviour
     public AudioSource audioSource; // Composant AudioSource
     public AudioSource backgroundMusic; // Musique d'ambiance
 
-    private float gameTime = 20f; // 2 minutes en secondes
+    private float gameTime = 120f; // 2 minutes en secondes
     private bool isGameOver = false;
 
     public ballScript ballScript;
@@ -62,7 +62,7 @@ public class Control : MonoBehaviour
         if (videoPlayer != null)
         {
             videoPlayer.gameObject.SetActive(false); // Cache le lecteur vidéo au début
-            videoPlayer.loopPointReached += OnVideoEnd; // Événement à appeler quand la vidéo se termine
+            //videoPlayer.loopPointReached += OnVideoEnd; // Événement à appeler quand la vidéo se termine
         }
 
     
@@ -116,9 +116,20 @@ public class Control : MonoBehaviour
                 ? "Blue Team Wins!"
                 : "It's a Draw!";
             
+           
+
+            if (redScore > blueScore){
+                SceneManager.LoadScene("redWin");
+
+            }if (redScore < blueScore){
+                SceneManager.LoadScene("blueWin");
+            }
+
+            if (redScore == blueScore){
+                SceneManager.LoadScene("menuDuJeu");
+            }
+
             if (winnerText != null)
-
-
             {
                 winnerText.text = winner;
                 winnerText.gameObject.SetActive(true); // Affiche le texte du gagnant
@@ -129,8 +140,10 @@ public class Control : MonoBehaviour
             }
 
             Debug.Log($"Red Score: {redScore}, Blue Score: {blueScore}");
-            SceneManager.LoadScene("menuDuJeu");
-            PlayWinnerVideo(redScore, blueScore);
+            
+            
+            //SceneManager.LoadScene("menuDuJeu");
+            //PlayWinnerVideo(redScore, blueScore);
         }            
     }
 
