@@ -129,6 +129,7 @@ public class Control : MonoBehaviour
             }
 
             Debug.Log($"Red Score: {redScore}, Blue Score: {blueScore}");
+            SceneManager.LoadScene("menuDuJeu");
             PlayWinnerVideo(redScore, blueScore);
         }            
     }
@@ -154,7 +155,7 @@ public class Control : MonoBehaviour
 
     private void OnVideoEnd(VideoPlayer vp)
     {
-        SceneManager.LoadScene(menuSceneName); // Retourne au menu principal
+        SceneManager.LoadScene("menuDuJeu"); // Retourne au menu principal
     }
     
 
