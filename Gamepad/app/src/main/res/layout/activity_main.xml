@@ -1,121 +1,27 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="@color/background_color">
-
-<!--    &lt;!&ndash; Bouton UP &ndash;&gt;
-    <Button
-        android:id="@+id/buttonUp"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_centerHorizontal="true"
-        android:backgroundTint="@color/accent_color"
-        android:text="UP"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:elevation="8dp"
-        android:layout_marginBottom="16dp"/>
-
-    &lt;!&ndash; Bouton DOWN &ndash;&gt;
-    <Button
-        android:id="@+id/buttonDown"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_below="@+id/buttonUp"
-        android:layout_centerHorizontal="true"
-        android:backgroundTint="@color/accent_color"
-        android:text="DOWN"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:elevation="8dp"
-        android:layout_marginTop="500dp"/>
-
-    &lt;!&ndash; Bouton LEFT &ndash;&gt;
-    <Button
-        android:id="@+id/buttonLeft"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_toLeftOf="@+id/buttonUp"
-        android:layout_centerVertical="true"
-        android:backgroundTint="@color/primary_color"
-        android:text="LEFT"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:elevation="8dp"
-        android:layout_marginRight="16dp"/>
-
-    &lt;!&ndash; Bouton RIGHT &ndash;&gt;
-    <Button
-        android:id="@+id/buttonRight"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_toRightOf="@+id/buttonUp"
-        android:layout_centerVertical="true"
-        android:backgroundTint="@color/primary_color"
-        android:text="RIGHT"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:elevation="8dp"
-        android:layout_marginLeft="25dp"/>-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="16dp" android:background="@color/background_color">
 
 
-    <!-- Slider Joueur 1 ou Joueur 2 -->
-    <Switch
-        android:id="@+id/playerSwitch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Joueur 1"
-        android:textSize="16sp"
-        android:textColor="@color/white"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:checked="true" />
+    <!--  Slider Joueur 1 ou Joueur 2  -->
+    <Switch android:id="@+id/playerSwitch" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Joueur Bleu" android:textSize="16sp" android:textColor="@color/white" android:layout_alignParentTop="true" android:layout_centerHorizontal="true" android:checked="true"/>
 
-    <!-- Coefficients multiplicateurs -->
-    <LinearLayout
-        android:id="@+id/coeffLayout"
-        android:layout_below="@id/playerSwitch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:textColor="@color/white"
-        android:layout_marginTop="16dp">
+    <!--  Coefficients multiplicateurs  -->
 
-        <EditText
-            android:id="@+id/coeffX"
+    <LinearLayout android:id="@+id/coeffLayout" android:layout_below="@id/playerSwitch" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:textColor="@color/white" android:layout_marginTop="16dp">
+        <EditText android:id="@+id/coeffX" android:layout_width="wrap_content" android:layout_height="wrap_content" android:hint="Coeff X" android:textColorHint="@color/white" android:textColor="@color/white" android:inputType="numberDecimal" android:layout_margin="8dp" android:layout_weight="1"/>
+        <EditText android:id="@+id/coeffY" android:layout_width="wrap_content" android:layout_height="wrap_content" android:hint="Coeff Y" android:textColorHint="@color/white" android:textColor="@color/white" android:inputType="numberDecimal" android:layout_margin="8dp" android:layout_weight="1"/>
+
+        <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Coeff X"
-            android:textColorHint="@color/white"
-            android:textColor="@color/white"
-            android:inputType="numberDecimal"
-            android:layout_margin="8dp"
-            android:layout_weight="1" />
+            android:text="Connexion"
+            android:id="@+id/validBtn"/>
 
-        <EditText
-            android:id="@+id/coeffY"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:hint="Coeff Y"
-            android:textColorHint="@color/white"
-            android:textColor="@color/white"
-            android:inputType="numberDecimal"
-            android:layout_margin="8dp"
-            android:layout_weight="1" />
     </LinearLayout>
+    <!--    <com.example.gamepad.JoystickView android:id="@+id/joystickView" android:layout_width="300dp" android:layout_height="300dp" android:layout_centerInParent="true"/>-->
 
-
-
-
-    <com.example.gamepad.JoystickView
-        android:id="@+id/joystickView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_centerInParent="true" />
-
+    <com.example.gamepad.PadView
+        android:id="@+id/padView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </RelativeLayout>
-
-
